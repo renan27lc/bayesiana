@@ -1,1 +1,15 @@
+# Define a function to calculate the sum of a sample
+sum_of_sq_residuals <- function(sample_data) {
+  total_sum <- sum((sample_data - mean(sample_data)^2)
+  return(total_sum)
+}
 
+# Create a sample as per the previous example
+set.seed(123)
+Y_s <- rnorm(1000, mean = 1, sd = sqrt(3))
+
+# Use the custom function to calculate the sum of the sample
+RSS <- sum_of_sq_residuals(Y_s)
+
+# Print the result
+cat("RSS - residual sum of squares", result, "\n")
