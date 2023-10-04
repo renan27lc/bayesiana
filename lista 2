@@ -1,6 +1,6 @@
 # Define a function to calculate the sum of a sample
 sum_of_sq_residuals <- function(sample_data) {
-  total_sum <- sum((sample_data - mean(sample_data)^2)
+  total_sum <- sum((sample_data - mean(sample_data))^2)
   return(total_sum)
 }
 
@@ -9,7 +9,47 @@ set.seed(123)
 Y_s <- rnorm(1000, mean = 1, sd = sqrt(3))
 
 # Use the custom function to calculate the sum of the sample
-RSS <- sum_of_sq_residuals(Y_s)
+RSS_Ys <- sum_of_sq_residuals(Y_s)
 
 # Print the result
-cat("RSS - residual sum of squares", result, "\n")
+cat("RSS - residual sum of squares", RSS_Ys, "\n")
+
+S <- 1000
+M_st <- 10000
+
+n <- S
+mu0_st <- 1
+n0_st <- 10
+nu0_st <- 10
+s0_st <- 24
+
+mu0_st
+kappa0_st <- n0_st
+alpha0_st <- nu0_st/2
+beta0_st <- nu0_st*s0_st/2         #ou s0_st^2 ?
+
+mu1_st <- (kappa0_st*mu0_st + S*mean(Y_s))/(kappa0_st + S)
+kappa1_st <- kappa0_st + S
+alpha1_st <- alpha0_st + S/2
+beta1_st <- beta0_st + RSS_Ys/2 + (kappa0_st*S*((mu0_st - mean(Y_s))^2))/(2*(kappa0_st + S))
+
+gamma_sample <- rgamma(1, shape = alpha1_st, rate = beta1_st)
+
+
+M_nd <- 100
+
+mu0_nd <- 1
+n0_nd <- 1
+nu0_nd <- 5
+s0_nd <- 9
+
+alpha0_st <- 
+
+
+
+
+
+
+
+
+#test <- sum_of_sq_residuals(c(0,2,8,25))
