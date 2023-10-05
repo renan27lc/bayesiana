@@ -33,8 +33,16 @@ kappa1_st <- kappa0_st + S
 alpha1_st <- alpha0_st + S/2
 beta1_st <- beta0_st + RSS_Ys/2 + (kappa0_st*S*((mu0_st - mean(Y_s))^2))/(2*(kappa0_st + S))
 
-gamma_sample <- rgamma(1, shape = alpha1_st, rate = beta1_st)
+gamma_sample10k_st <- rgamma(10000, shape = alpha1_st, rate = beta1_st)
+normal_sample10k_st <- rnorm(10000, mean = mu1_st, sd = sqrt(1/mean(gamma_sample10k_st)))
+mu1_st_estim10k <- mean(normal_sample10k_st)
 
+gamma_sample100_st <- rgamma(100, shape = alpha1_st, rate = beta1_st)
+normal_sample100_st <- rnorm(100, mean = mu1_st, sd = sqrt(1/mean(gamma_sample100_st)))
+mu1_st_estim100 <- mean(normal_sample100_st)
+
+mu1_st_estim10k - mu1_st
+mu1_st_estim100 - mu1_st
 
 M_nd <- 100
 
