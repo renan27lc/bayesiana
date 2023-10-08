@@ -23,7 +23,7 @@ n0_st <- 10
 nu0_st <- 10
 s0_st <- 24
 
-mu0_st
+
 kappa0_st <- n0_st
 alpha0_st <- nu0_st/2
 beta0_st <- nu0_st*s0_st/2         #ou s0_st^2 ?
@@ -41,9 +41,14 @@ gamma_sample100_st <- rgamma(100, shape = alpha1_st, rate = beta1_st)
 normal_sample100_st <- rnorm(100, mean = mu1_st, sd = sqrt(1/mean(gamma_sample100_st)))
 mu1_st_estim100 <- mean(normal_sample100_st)
 
-mu1_st_estim10k - mu1_st
-mu1_st_estim100 - mu1_st
+mu1_estim10k_error <- mu1_st_estim10k - mu1_st
+mu1_estim100_error <- mu1_st_estim100 - mu1_st
 
+var1_st <- 1/(2*alpha1_st)
+var1_estim10k_error <- 1/mean(gamma_sample10k_st) - var1_st
+1/mean(gamma_sample100_st)
+
+#====================================== nd ======================================
 M_nd <- 100
 
 mu0_nd <- 1
@@ -51,13 +56,25 @@ n0_nd <- 1
 nu0_nd <- 5
 s0_nd <- 9
 
-alpha0_st <- 
+kappa0_nd <- n0_nd
+alpha0_nd <- nu0_nd/2
+beta0_nd <- nu0_nd*s0_nd/2         #ou s0_nd^2 ?
+
+mu1_nd <- (kappa0_nd*mu0_nd + S*mean(Y_s))/(kappa0_nd + S)
+kappa1_nd <- kappa0_nd + S
+alpha1_nd <- alpha0_nd + S/2
+beta1_nd <- beta0_nd + RSS_Ys/2 + (kappa0_nd*S*((mu0_nd - mean(Y_s))^2))/(2*(kappa0_nd + S))
+
+gamma_sample10k_nd <- rgamma(10000, shape = alpha1_nd, rate = beta1_nd)
+normal_sample10k_nd <- rnorm(10000, mean = mu1_nd, sd = sqrt(1/mean(gamma_sample10k_nd)))
+mu1_nd_estim10k <- mean(normal_sample10k_nd)
+
+gamma_sample100_nd <- rgamma(100, shape = alpha1_nd, rate = beta1_nd)
+normal_sample100_nd <- rnorm(100, mean = mu1_nd, sd = sqrt(1/mean(gamma_sample100_nd)))
+mu1_nd_estim100 <- mean(normal_sample100_nd)
+
+mu1_nd_estim10k - mu1_nd
+mu1_nd_estim100 - mu1_nd
 
 
 
-
-
-
-
-
-#test <- sum_of_sq_residuals(c(0,2,8,25))
