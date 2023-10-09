@@ -106,3 +106,17 @@ var1.nd_estim100_error <- var1.nd_estim100 - var1_nd
 var1.nd_estim10k_error
 var1.nd_estim100_error
 
+#====================================== histogtamas ======================================
+
+
+normal_sample10k_st 
+
+kappa1_st <- 1/(1/kappa0_st + S)
+
+#mu1_st:
+plot(normalgamma(mu1_st, kappa1_st, alpha1_st, beta1_st))
+
+
+
+normal_sample10k_nd 
+mu1_nd
