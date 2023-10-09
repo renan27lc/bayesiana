@@ -15,7 +15,7 @@ RSS_Ys <- sum_of_sq_residuals(Y_s)
 cat("RSS - residual sum of squares", RSS_Ys, "\n")
 
 S <- 1000
-M_st <- 10000
+#10k <- 10000
 
 n <- S
 mu0_st <- 1
@@ -41,16 +41,28 @@ gamma_sample100_st <- rgamma(100, shape = alpha1_st, rate = beta1_st)
 normal_sample100_st <- rnorm(100, mean = mu1_st, sd = sqrt(1/mean(gamma_sample100_st)))
 mu1_st_estim100 <- mean(normal_sample100_st)
 
-mu1_estim10k_error <- mu1_st_estim10k - mu1_st
-mu1_estim100_error <- mu1_st_estim100 - mu1_st
+mu1.st_estim10k_error <- mu1_st_estim10k - mu1_st
+mu1.st_estim100_error <- mu1_st_estim100 - mu1_st
 
-# var1_st <- 1/(2*alpha1_st*(n0_st + S))
-var1_st <- beta1_st/(kappa1_st*(alpha1_st - 1))
-var1_estim10k_error <- 1/mean(gamma_sample10k_st) - var1_st
-1/mean(gamma_sample100_st)
+
+Prec1.st_estim10k<- (sum(gamma_sample10k_st))/10000
+Prec1.st_estim100<- (sum(gamma_sample100_st))/100
+
+Prec1_st <- alpha1_st/beta1_st
+
+var1.st_estim10k<- (sum(1/gamma_sample10k_st))/10000
+var1.st_estim100<- (sum(1/gamma_sample100_st))/100
+
+
+var1_st <- 1/Prec1_st
+var1.st_estim10k_error <- var1.st_estim10k - var1_st
+var1.st_estim100_error <- var1.st_estim100 - var1_st
+
+var1.st_estim10k_error
+var1.st_estim100_error
 
 #====================================== nd ======================================
-M_nd <- 100
+
 
 mu0_nd <- 1
 n0_nd <- 1
@@ -74,8 +86,23 @@ gamma_sample100_nd <- rgamma(100, shape = alpha1_nd, rate = beta1_nd)
 normal_sample100_nd <- rnorm(100, mean = mu1_nd, sd = sqrt(1/mean(gamma_sample100_nd)))
 mu1_nd_estim100 <- mean(normal_sample100_nd)
 
-mu1_nd_estim10k - mu1_nd
-mu1_nd_estim100 - mu1_nd
+mu1.nd_estim10k_error <- mu1_nd_estim10k - mu1_nd
+mu1.nd_estim100_error <- mu1_nd_estim100 - mu1_nd
 
 
+Prec1.nd_estim10k<- (sum(gamma_sample10k_nd))/10000
+Prec1.nd_estim100<- (sum(gamma_sample100_nd))/100
+
+Prec1_nd <- alpha1_nd/beta1_nd
+
+var1.nd_estim10k<- (sum(1/gamma_sample10k_nd))/10000
+var1.nd_estim100<- (sum(1/gamma_sample100_nd))/100
+
+
+var1_nd <- 1/Prec1_nd
+var1.nd_estim10k_error <- var1.nd_estim10k - var1_nd
+var1.nd_estim100_error <- var1.nd_estim100 - var1_nd
+
+var1.nd_estim10k_error
+var1.nd_estim100_error
 
