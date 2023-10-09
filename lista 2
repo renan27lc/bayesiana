@@ -44,7 +44,8 @@ mu1_st_estim100 <- mean(normal_sample100_st)
 mu1_estim10k_error <- mu1_st_estim10k - mu1_st
 mu1_estim100_error <- mu1_st_estim100 - mu1_st
 
-var1_st <- 1/(2*alpha1_st)
+# var1_st <- 1/(2*alpha1_st*(n0_st + S))
+var1_st <- beta1_st/(kappa1_st*(alpha1_st - 1))
 var1_estim10k_error <- 1/mean(gamma_sample10k_st) - var1_st
 1/mean(gamma_sample100_st)
 
