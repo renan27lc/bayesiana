@@ -20,8 +20,8 @@ S <- 1000
 n <- S
 mu0_st <- 1
 n0_st <- 10
-nu0_st <- 10
-s0_st <- 24
+s0_st <- 10
+nu0_st <- 24
 
 
 kappa0_st <- n0_st
@@ -66,8 +66,8 @@ var1.st_estim100_error
 
 mu0_nd <- 1
 n0_nd <- 1
-nu0_nd <- 5
-s0_nd <- 9
+s0_nd <- 5
+nu0_nd <- 9
 
 kappa0_nd <- n0_nd
 alpha0_nd <- nu0_nd/2
@@ -121,3 +121,9 @@ plot(normalgamma(mu1_st, kappa1_st, alpha1_st, beta1_st))
 
 normal_sample10k_nd 
 mu1_nd
+
+#====================================== 3b ======================================
+
+
+View(matrix(c("Média Amostral (avg_Ys)",mean(Y_s),"mu1_st",mu1_st,"mu1_nd",mu1_nd),2,3))
+View(matrix(c("s2_Ys",sd(Y_s)^2,"sig2_st",1/Prec1_st,"sig2_nd",1/Prec1_nd),2,3))
