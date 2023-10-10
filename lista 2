@@ -1,21 +1,15 @@
-# Define a function to calculate the sum of a sample
-sum_of_sq_residuals <- function(sample_data) {
-  total_sum <- sum((sample_data - mean(sample_data))^2)
-  return(total_sum)
-}
-
-# Create a sample as per the previous example
-set.seed(123)
-Y_s <- rnorm(1000, mean = 1, sd = sqrt(3))
-
-# Use the custom function to calculate the sum of the sample
-RSS_Ys <- sum_of_sq_residuals(Y_s)
-
-# Print the result
-cat("RSS - residual sum of squares", RSS_Ys, "\n")
 
 S <- 1000
-#10k <- 10000
+set.seed(123)
+Y_s <- rnorm(S, mean = 1, sd = sqrt(3))
+
+RSS_Ys <- sum((Y_s - mean(Y_s))^2)
+
+#====================================== M10k ======================================
+
+M10k <- 10000
+
+#=================== st =====================
 
 n <- S
 mu0_st <- 1
@@ -32,36 +26,28 @@ mu1_st <- (kappa0_st*mu0_st + S*mean(Y_s))/(kappa0_st + S)
 kappa1_st <- kappa0_st + S                                       # n*
 alpha1_st <- alpha0_st + S/2
 beta1_st <- beta0_st + RSS_Ys/2 + (kappa0_st*S*((mu0_st - mean(Y_s))^2))/(2*(kappa0_st + S))
+prec1_st <- alpha1_st/beta1_st
 
-gamma_sample10k_st <- rgamma(10000, shape = alpha1_st, rate = beta1_st)
-normal_sample10k_st <- rnorm(10000, mean = mu1_st, sd = sqrt(1/(kappa1_st*mean(gamma_sample10k_st))))
-mu1_st_estim10k <- mean(normal_sample10k_st)
+gamma_sample10k_st <- rgamma(M10k, shape = alpha1_st, rate = beta1_st)
+prec1_hat10k_st<- mean(gamma_sample10k_st)
+sig2_hat10k_st <- mean(1/gamma_sample10k_st)
+sig2_st_estim10k_error <- sig2_hat10k_st - 1/prec1_st
 
-gamma_sample100_st <- rgamma(100, shape = alpha1_st, rate = beta1_st)
-normal_sample100_st <- rnorm(100, mean = mu1_st, sd = sqrt(1/(kappa1_st*mean(gamma_sample100_st))))
-mu1_st_estim100 <- mean(normal_sample100_st)
+# normal_sample10k_st <- rnorm(M10k, mean = mu1_st, sd = sqrt(1/(kappa1_st*mean(gamma_sample10k_st))))
+# mu1_st_estim10k <- mean(normal_sample10k_st)
+# mu1.st_estim10k_error <- mu1_st_estim10k - mu1_st
 
-mu1.st_estim10k_error <- mu1_st_estim10k - mu1_st
-mu1.st_estim100_error <- mu1_st_estim100 - mu1_st
-
-
-Prec1.st_estim10k<- (sum(gamma_sample10k_st))/10000
-Prec1.st_estim100<- (sum(gamma_sample100_st))/100
-
-Prec1_st <- alpha1_st/beta1_st
-
-var1.st_estim10k<- (sum(1/gamma_sample10k_st))/10000
-var1.st_estim100<- (sum(1/gamma_sample100_st))/100
+sample_10knormals_st <- numeric(M10k)
+for (i in 1:M10k) {
+  sample_10knormals_st[i] <- rnorm(1, mean = mu1_st, sd = sqrt(1 / (kappa1_st * gamma_sample10k_st[i])))
+}
+mu_hat_10k_st <- mean(sample_10knormals_st)
+mu1_st_estim10k_error <- mu_hat_10k_st - mu1_st
 
 
-var1_st <- 1/Prec1_st
-var1.st_estim10k_error <- var1.st_estim10k - var1_st
-var1.st_estim100_error <- var1.st_estim100 - var1_st
 
-var1.st_estim10k_error
-var1.st_estim100_error
 
-#====================================== nd ======================================
+#=================== nd =====================
 
 
 mu0_nd <- 1
@@ -74,38 +60,114 @@ alpha0_nd <- nu0_nd/2
 beta0_nd <- nu0_nd*s0_nd/2         #ou s0_nd^2 ?
 
 mu1_nd <- (kappa0_nd*mu0_nd + S*mean(Y_s))/(kappa0_nd + S)
-kappa1_nd <- kappa0_nd + S
+kappa1_nd <- kappa0_nd + S                                       # n*
 alpha1_nd <- alpha0_nd + S/2
 beta1_nd <- beta0_nd + RSS_Ys/2 + (kappa0_nd*S*((mu0_nd - mean(Y_s))^2))/(2*(kappa0_nd + S))
+prec1_nd <- alpha1_nd/beta1_nd
 
-gamma_sample10k_nd <- rgamma(10000, shape = alpha1_nd, rate = beta1_nd)
-var1_sample10k_nd <- 1/(kappa1_nd*gamma_sample10k_nd)
-normal_sample10k_nd <- rnorm(10000, mean = mu1_nd, sd = sqrt(1/(kappa1_nd*mean(gamma_sample10k_nd))))
-mu1_nd_estim10k <- mean(normal_sample10k_nd)
+gamma_sample10k_nd <- rgamma(M10k, shape = alpha1_nd, rate = beta1_nd)
+prec1_hat10k_nd<- mean(gamma_sample10k_nd)
+sig2_hat10k_nd <- mean(1/gamma_sample10k_nd)
+sig2_nd_estim10k_error <- sig2_hat10k_nd - 1/prec1_nd
 
-gamma_sample100_nd <- rgamma(100, shape = alpha1_nd, rate = beta1_nd)
-normal_sample100_nd <- rnorm(100, mean = mu1_nd, sd = sqrt(1/(kappa1_nd*mean(gamma_sample100_nd))))
-mu1_nd_estim100 <- mean(normal_sample100_nd)
+# normal_sample10k_nd <- rnorm(M10k, mean = mu1_nd, sd = sqrt(1/(kappa1_nd*mean(gamma_sample10k_nd))))
+# mu1_nd_estim10k <- mean(normal_sample10k_nd)
+# mu1.st_estim10k_error <- mu1_nd_estim10k - mu1_nd
 
-mu1.nd_estim10k_error <- mu1_nd_estim10k - mu1_nd
-mu1.nd_estim100_error <- mu1_nd_estim100 - mu1_nd
-
-
-Prec1.nd_estim10k<- (sum(gamma_sample10k_nd))/10000
-Prec1.nd_estim100<- (sum(gamma_sample100_nd))/100
-
-Prec1_nd <- alpha1_nd/beta1_nd
-
-var1.nd_estim10k<- (sum(1/gamma_sample10k_nd))/10000
-var1.nd_estim100<- (sum(1/gamma_sample100_nd))/100
+sample_10knormals_nd <- numeric(M10k)
+for (i in 1:M10k) {
+  sample_10knormals_nd[i] <- rnorm(1, mean = mu1_nd, sd = sqrt(1 / (kappa1_nd * gamma_sample10k_nd[i])))
+}
+mu_hat_10k_nd <- mean(sample_10knormals_nd)
+mu1_nd_estim10k_error <- mu_hat_10k_nd - mu1_nd
 
 
-var1_nd <- 1/Prec1_nd
-var1.nd_estim10k_error <- var1.nd_estim10k - var1_nd
-var1.nd_estim100_error <- var1.nd_estim100 - var1_nd
+parameters <- c("mu1_st", "mu1_nd","sig2_st", "sig2_nd")
+errors_10k <- c(mu1_st_estim10k_error, mu1_nd_estim10k_error,sig2_st_estim10k_error, sig2_nd_estim10k_error)
+errors_10k <- data.frame(Parameter = parameters, Estimate = errors_10k)
+print(errors_10k)
 
-var1.nd_estim10k_error
-var1.nd_estim100_error
+#====================================== M100 ======================================
+
+M100 <- 100
+
+#=================== st =====================
+
+n <- S
+mu0_st <- 1
+n0_st <- 10
+s0_st <- 10
+nu0_st <- 24
+
+
+kappa0_st <- n0_st
+alpha0_st <- nu0_st/2
+beta0_st <- nu0_st*s0_st/2         #ou s0_st^2 ?
+
+mu1_st <- (kappa0_st*mu0_st + S*mean(Y_s))/(kappa0_st + S)
+kappa1_st <- kappa0_st + S                                       # n*
+alpha1_st <- alpha0_st + S/2
+beta1_st <- beta0_st + RSS_Ys/2 + (kappa0_st*S*((mu0_st - mean(Y_s))^2))/(2*(kappa0_st + S))
+prec1_st <- alpha1_st/beta1_st
+
+gamma_sample100_st <- rgamma(M100, shape = alpha1_st, rate = beta1_st)
+prec1_hat100_st<- mean(gamma_sample100_st)
+sig2_hat100_st <- mean(1/gamma_sample100_st)
+sig2_st_estim100_error <- sig2_hat100_st - 1/prec1_st
+
+# normal_sample100_st <- rnorm(M100, mean = mu1_st, sd = sqrt(1/(kappa1_st*mean(gamma_sample100_st))))
+# mu1_st_estim100 <- mean(normal_sample100_st)
+# mu1.st_estim100_error <- mu1_st_estim100 - mu1_st
+
+sample_100normals_st <- numeric(M100)
+for (i in 1:M100) {
+  sample_100normals_st[i] <- rnorm(1, mean = mu1_st, sd = sqrt(1 / (kappa1_st * gamma_sample100_st[i])))
+}
+mu_hat_100_st <- mean(sample_100normals_st)
+mu1_st_estim100_error <- mu_hat_100_st - mu1_st
+
+
+
+
+#=================== nd =====================
+
+
+mu0_nd <- 1
+n0_nd <- 1
+s0_nd <- 5
+nu0_nd <- 9
+
+kappa0_nd <- n0_nd
+alpha0_nd <- nu0_nd/2
+beta0_nd <- nu0_nd*s0_nd/2         #ou s0_nd^2 ?
+
+mu1_nd <- (kappa0_nd*mu0_nd + S*mean(Y_s))/(kappa0_nd + S)
+kappa1_nd <- kappa0_nd + S                                       # n*
+alpha1_nd <- alpha0_nd + S/2
+beta1_nd <- beta0_nd + RSS_Ys/2 + (kappa0_nd*S*((mu0_nd - mean(Y_s))^2))/(2*(kappa0_nd + S))
+prec1_nd <- alpha1_nd/beta1_nd
+
+gamma_sample100_nd <- rgamma(M100, shape = alpha1_nd, rate = beta1_nd)
+prec1_hat100_nd<- mean(gamma_sample100_nd)
+sig2_hat100_nd <- mean(1/gamma_sample100_nd)
+sig2_nd_estim100_error <- sig2_hat100_nd - 1/prec1_nd
+
+# normal_sample100_nd <- rnorm(M100, mean = mu1_nd, sd = sqrt(1/(kappa1_nd*mean(gamma_sample100_nd))))
+# mu1_nd_estim100 <- mean(normal_sample100_nd)
+# mu1.st_estim100_error <- mu1_nd_estim100 - mu1_nd
+
+sample_100normals_nd <- numeric(M100)
+for (i in 1:M100) {
+  sample_100normals_nd[i] <- rnorm(1, mean = mu1_nd, sd = sqrt(1 / (kappa1_nd * gamma_sample100_nd[i])))
+}
+mu_hat_100_nd <- mean(sample_100normals_nd)
+mu1_nd_estim100_error <- mu_hat_100_nd - mu1_nd
+
+
+# parameters <- c("mu1_st", "mu1_nd","sig2_st", "sig2_nd")
+errors_100 <- c(mu1_st_estim100_error, mu1_nd_estim100_error,sig2_st_estim100_error, sig2_nd_estim100_error)
+errors_100 <- data.frame(Parameter = parameters, Estimate = errors_100)
+print(errors_100)
 
 #====================================== histogtamas ======================================
 
@@ -155,16 +217,11 @@ View(matrix(c("s2_Ys",sd(Y_s)^2,"sig2_st",1/Prec1_st,"sig2_nd",1/Prec1_nd),2,3))
 
 
 
-sig2_hat10k_st <- mean(1/gamma_sample10k_st)
+
 sig2_hat100_st <- mean(1/gamma_sample100_st)
 sig2_hat10k_nd <- mean(1/gamma_sample10k_nd)
 sig2_hat100_nd <- mean(1/gamma_sample100_nd)
 
-sample_10knormals_st <- numeric(10000)
-for (i in 1:10000) {
-  sample_10knormals_st[i] <- rnorm(1, mean = mu1_st, sd = sqrt(1 / (kappa1_st * gamma_sample10k_st[i])))
-}
-mu_hat_10k_st <- mean(sample_10knormals_st)
 
 sample_100normals_st <- numeric(100)
 for (i in 1:100) {
