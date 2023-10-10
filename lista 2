@@ -110,20 +110,94 @@ var1.nd_estim100_error
 #====================================== histogtamas ======================================
 
 
-normal_sample10k_st 
+# Install and load the scales package (if not already installed)
+if (!requireNamespace("scales", quietly = TRUE)) {
+    install.packages("scales")
+}
+library(scales)
 
-kappa1_st <- 1/(1/kappa0_st + S)
+# Set the random seed for reproducibility (optional)
+set.seed(123)
 
-#mu1_st:
-plot(normalgamma(mu1_st, kappa1_st, alpha1_st, beta1_st))
+# Generate YSapt_10k_st and YSapt_10k_nd datasets
+YSapt_10k_st <- rnorm(1000, 1.026318, sqrt(3.164481))
+YSapt_10k_nd <- rnorm(1000, 1.077096, sqrt(3.164481))
 
+# Create a histogram for YSapt_10k_st
+hist(YSapt_10k_st, breaks = 30, main = "Histogram of YSapt_10k_st",
+     xlab = "Value", ylab = "Frequency", col = "lightblue", border = "black")
 
+# Overlay the histogram for YSapt_10k_nd on top with transparency
+hist(YSapt_10k_nd, breaks = 30, col = alpha("red", 0.5), add = TRUE)
 
-normal_sample10k_nd 
-mu1_nd
+# Add a legend for clarity
+legend("topright", legend = c("YSapt_10k_st", "YSapt_10k_nd"), fill = c("lightblue", alpha("red", 0.5)))
+
+# Calculate the PDF values for N(mean = 1, var = 3)
+x_values <- seq(-4, 6, length.out = 1000)  # Define x-axis values
+pdf_values <- dnorm(x_values, mean = 1, sd = sqrt(3))  # Calculate PDF values
+
+# Rescale the PDF line for better visibility
+pdf_values <- pdf_values * mean(hist(YSapt_10k_st, plot = FALSE)$counts) / max(pdf_values)
+
+# Overlay the PDF line on the histogram
+lines(x_values, pdf_values, col = "blue", lwd = 2)
 
 #====================================== 3b ======================================
 
 
-View(matrix(c("Média Amostral (avg_Ys)",mean(Y_s),"mu1_st",mu1_st,"mu1_nd",mu1_nd),2,3))
+View(matrix(c("mu_hat_ml",mean(Y_s),"mu1_st",mu1_st,"mu1_nd",mu1_nd),2,3))
 View(matrix(c("s2_Ys",sd(Y_s)^2,"sig2_st",1/Prec1_st,"sig2_nd",1/Prec1_nd),2,3))
+
+
+#====================================== working on ======================================
+
+
+
+
+sig2_hat10k_st <- mean(1/gamma_sample10k_st)
+sig2_hat100_st <- mean(1/gamma_sample100_st)
+sig2_hat10k_nd <- mean(1/gamma_sample10k_nd)
+sig2_hat100_nd <- mean(1/gamma_sample100_nd)
+
+sample_10knormals_st <- numeric(10000)
+for (i in 1:10000) {
+  sample_10knormals_st[i] <- rnorm(1, mean = mu1_st, sd = sqrt(1 / (kappa1_st * gamma_sample10k_st[i])))
+}
+mu_hat_10k_st <- mean(sample_10knormals_st)
+
+sample_100normals_st <- numeric(100)
+for (i in 1:100) {
+  sample_100normals_st[i] <- rnorm(1, mean = mu1_st, sd = sqrt(1 / (kappa1_st * gamma_sample100_st[i])))
+}
+mu_hat_100_st <- mean(sample_100normals_st)
+
+
+sample_10knormals_nd <- numeric(10000)
+for (i in 1:10000) {
+  sample_10knormals_nd[i] <- rnorm(1, mean = mu1_nd, sd = sqrt(1 / (kappa1_nd * gamma_sample10k_nd[i])))
+}
+mu_hat_10k_nd <- mean(sample_10knormals_nd)
+
+sample_100normals_nd <- numeric(100)
+for (i in 1:100) {
+  sample_100normals_nd[i] <- rnorm(1, mean = mu1_nd, sd = sqrt(1 / (kappa1_nd * gamma_sample100_nd[i])))
+}
+mu_hat_100_nd <- mean(sample_100normals_nd)
+
+YSapt_10k_st <- rnorm(1000, mu_hat_10k_st, sqrt(sig2_hat10k_st))
+YSapt_100_st <- rnorm(1000, mu_hat_100_st, sqrt(sig2_hat100_st))
+YSapt_10k_nd <- rnorm(1000, mu_hat_10k_nd, sqrt(sig2_hat10k_nd))
+YSapt_100_nd <- rnorm(1000, mu_hat_100_nd, sqrt(sig2_hat100_nd))
+
+c(sum((YSapt_10k_st - Y_s)^2)/1000,sum((YSapt_100_st - Y_s)^2)/1000,sum((YSapt_10k_nd - Y_s)^2)/1000,sum((YSapt_100_nd - Y_s)^2)/1000)
+
+
+sum((YSapt_10k_st - Y_s)^2)/1000
+sum((YSapt_100_st - Y_s)^2)/1000
+sum((YSapt_10k_nd - Y_s)^2)/1000
+sum((YSapt_100_nd - Y_s)^2)/1000
+
+
+
+
