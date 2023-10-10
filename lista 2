@@ -20,6 +20,7 @@ nu0_st <- 24
 kappa0_st <- n0_st
 alpha0_st <- nu0_st/2
 beta0_st <- nu0_st*s0_st/2         #ou s0_st^2 ?
+prec0_st <- alpha0_st/beta0_st
 
 mu1_st <- (kappa0_st*mu0_st + S*mean(Y_s))/(kappa0_st + S)
 kappa1_st <- kappa0_st + S                                       # n*
@@ -55,6 +56,7 @@ nu0_nd <- 9
 kappa0_nd <- n0_nd
 alpha0_nd <- nu0_nd/2
 beta0_nd <- nu0_nd*s0_nd/2         #ou s0_nd^2 ?
+prec0_nd <- alpha0_nd/beta0_nd
 
 mu1_nd <- (kappa0_nd*mu0_nd + S*mean(Y_s))/(kappa0_nd + S)
 kappa1_nd <- kappa0_nd + S                                       # n*
@@ -124,21 +126,6 @@ M100 <- 100
 #=================== st =====================
 
 
-n <- S
-mu0_st <- 1
-n0_st <- 10
-s0_st <- 10
-nu0_st <- 24
-
-kappa0_st <- n0_st
-alpha0_st <- nu0_st/2
-beta0_st <- nu0_st*s0_st/2         #ou s0_st^2 ?
-
-mu1_st <- (kappa0_st*mu0_st + S*mean(Y_s))/(kappa0_st + S)
-kappa1_st <- kappa0_st + S                                       # n*
-alpha1_st <- alpha0_st + S/2
-beta1_st <- beta0_st + RSS_Ys/2 + (kappa0_st*S*((mu0_st - mean(Y_s))^2))/(2*(kappa0_st + S))
-prec1_st <- alpha1_st/beta1_st
 
 gamma_sample100_st <- rgamma(M100, shape = alpha1_st, rate = beta1_st)
 prec1_hat_100_st<- mean(gamma_sample100_st)
@@ -160,20 +147,7 @@ mu1_st_estim100_error <- mu_hat_100_st - mu1_st
 #=================== nd =====================
 
 
-mu0_nd <- 1
-n0_nd <- 1
-s0_nd <- 5
-nu0_nd <- 9
 
-kappa0_nd <- n0_nd
-alpha0_nd <- nu0_nd/2
-beta0_nd <- nu0_nd*s0_nd/2         #ou s0_nd^2 ?
-
-mu1_nd <- (kappa0_nd*mu0_nd + S*mean(Y_s))/(kappa0_nd + S)
-kappa1_nd <- kappa0_nd + S                                       # n*
-alpha1_nd <- alpha0_nd + S/2
-beta1_nd <- beta0_nd + RSS_Ys/2 + (kappa0_nd*S*((mu0_nd - mean(Y_s))^2))/(2*(kappa0_nd + S))
-prec1_nd <- alpha1_nd/beta1_nd
 
 gamma_sample100_nd <- rgamma(M100, shape = alpha1_nd, rate = beta1_nd)
 prec1_hat_100_nd<- mean(gamma_sample100_nd)
@@ -191,7 +165,7 @@ for (i in 1:M100) {
 mu_hat_100_nd <- mean(sample_100normals_nd)
 mu1_nd_estim100_error <- mu_hat_100_nd - mu1_nd
 
-# parameters <- c("mu1_st", "mu1_nd","sig2_st", "sig2_nd")
+parameters <- c("mu1_st", "mu1_nd","sig2_st", "sig2_nd")
 errors_100 <- c(mu1_st_estim100_error, mu1_nd_estim100_error,sig2_st_estim100_error, sig2_nd_estim100_error)
 errors_100 <- data.frame(Parameter = parameters, Estimate = errors_100)
 print(errors_100)
@@ -230,11 +204,27 @@ lines(x_values, pdf_values, col = "blue", lwd = 2)
 
 
 
-View(matrix(c("mu_hat_ml",mean(Y_s),"mu1_st",mu1_st,"mu1_nd",mu1_nd),2,3))
-View(matrix(c("s2_Ys",sd(Y_s)^2,"sig2_st",1/Prec1_st,"sig2_nd",1/Prec1_nd),2,3))
+parameters_mu <- c("ml","st","nd")
+apt_deriv_mu <- c(mean(Y_s),mu1_st,mu1_nd)
+apr_mu <- c("",mu0_st,mu0_nd)
+ex3b_mu <- data.frame(Parameter = parameters_mu, Derivated = apt_deriv_mu, Prior = apr_mu)
+print(ex3b_mu)
+
+parameters_sig2 <- c("ml","st","nd")
+apt_deriv_sig2 <- c(sd(Y_s)^2,1/prec1_st,1/prec1_nd)
+apr_sig2 <- c("",1/prec0_st,1/prec0_nd)
+ex3b_sig2 <- data.frame(Parameter = parameters_sig2, Derivated = apt_deriv_sig2, Prior = apr_sig2)
+print(ex3b_sig2)
+
+parameters_sig2 <- c("sig2_hat_ml","sig2_st","sig2_nd")
+derivated_values_sig2 <- c(,,)
+ex3b_sig2 <- data.frame(Parameter = parameters_sig2, Derivated = derivated_values_sig2)
+print(ex3b_sig2)
+
 
 
 #====================================== working on ======================================
+
 
 
 YSapt_10k_st <- rnorm(1000, mu_hat_10k_st, sqrt(sig2_hat_10k_st))
