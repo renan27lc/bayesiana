@@ -202,11 +202,15 @@ lines(x_values, pdf_values, col = "blue", lwd = 2)
 
 #====================================== 3b ======================================
 
+format6 <- function(x) {
+  formated <- format(round(x, 6), nsmall = 6)
+  return(formated)
+}
 
 parameters_mu <- c("ml","st","nd")
 apt_deriv_mu <- c(mean(Y_s),mu1_st,mu1_nd)
-estim10k_mu <- c("",mu_hat_10k_st,mu_hat_10k_nd)
-estim100_mu <- c("",mu_hat_100_st,mu_hat_100_nd)
+estim10k_mu <- c("",format6(mu_hat_10k_st),format6(mu_hat_10k_nd))
+estim100_mu <- c("",format6(mu_hat_100_st),format6(mu_hat_100_nd))
 apr_mu <- c("",mu0_st,mu0_nd)
 n0_vector <- c("",n0_st,n0_nd)
 ex3b_mu <- data.frame(Parameter = parameters_mu, Mu.calc = apt_deriv_mu, Mu.M10k = estim10k_mu, Mu.M100 = estim100_mu, Prior = apr_mu, n_0 = n0_vector)
@@ -214,8 +218,8 @@ print(ex3b_mu)
 
 parameters_sig2 <- c("ml","st","nd")
 apt_deriv_sig2 <- c(sd(Y_s)^2,1/prec1_st,1/prec1_nd)
-estim10k_sig2 <- c("",sig2_hat_10k_st,sig2_hat_10k_nd)
-estim100_sig2 <- c("",sig2_hat_100_st,sig2_hat_100_nd)
+estim10k_sig2 <- c("",format6(sig2_hat_10k_st),format6(sig2_hat_10k_nd))
+estim100_sig2 <- c("",format6(sig2_hat_100_st),format6(sig2_hat_100_nd))
 apr_sig2 <- c("",1/prec0_st,1/prec0_nd)
 n0_vector <- c("",n0_st,n0_nd)
 ex3b_sig2 <- data.frame(Parameter = parameters_sig2, Variance.calc = apt_deriv_sig2, Variance.M10k = estim10k_sig2, Variance.M100 = estim100_sig2, Prior = apr_sig2, n_0 = n0_vector)
