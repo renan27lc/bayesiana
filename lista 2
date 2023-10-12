@@ -89,6 +89,7 @@ print(errors_10k)
 
 #=================== histograms =====================
 
+#=== vs Y_s ======
 
 if (!requireNamespace("scales", quietly = TRUE)) {
     install.packages("scales")
@@ -99,20 +100,45 @@ set.seed(123)
 
 YSapt_10k_st <- rnorm(S, mu_hat_10k_st, sqrt(sig2_hat_10k_st))
 YSapt_10k_nd <- rnorm(S, mu_hat_10k_nd, sqrt(sig2_hat_10k_nd))
-
-hist(YSapt_10k_st, breaks = 30, main = "Histogram of YSapt_10k_st",
+hist(YSapt_10k_st, breaks = 60, main = "Histogram of YSapt_10k_st",
      xlab = "Value", ylab = "Frequency", col = "lightblue", border = "black")
-
-hist(YSapt_10k_nd, breaks = 30, col = alpha("red", 0.5), add = TRUE)
-
+hist(YSapt_10k_nd, breaks = 60, col = alpha("red", 0.5), add = TRUE)
 legend("topright", legend = c("YSapt_10k_st", "YSapt_10k_nd"), fill = c("lightblue", alpha("red", 0.5)))
-
 x_values <- seq(-4, 6, length.out = S)  # Define x-axis values
-pdf_values <- dnorm(x_values, mean = 1, sd = sqrt(3))  # Calculate PDF values
 
-pdf_values <- pdf_values * mean(hist(YSapt_10k_st, plot = FALSE)$counts) / max(pdf_values)
 
-lines(x_values, pdf_values, col = "blue", lwd = 2)
+#=== st vs nd ======
+
+
+hist(sample_10knormals_st, breaks = 30, main = "Histogram of YSapt_10k_st",
+     xlab = "Value", ylab = "Frequency", col = "lightblue", border = "black")
+hist(sample_10knormals_nd, breaks = 15, col = alpha("red", 0.5), add = TRUE)
+legend("topright", legend = c("YSapt_10k_st", "YSapt_10k_nd"), fill = c("lightblue", alpha("red", 0.5)))
+x_values <- seq(-4, 6, length.out = S)  # Define x-axis values
+#pdf_values <- dnorm(x_values, mean = 1, sd = sqrt(3))  # Calculate PDF values
+#pdf_values <- pdf_values * mean(hist(YSapt_10k_st, plot = FALSE)$counts) / max(pdf_values)
+#lines(x_values, pdf_values, col = "blue", lwd = 2)
+
+
+
+#=== vs calc ======
+
+#____ st ____
+x <- sample_10knormals_st #sample
+h <- hist(x, breaks = 20, plot=FALSE) #generate hist
+plot(h, col="grey") #plot hist
+xlines <-seq(min(h$breaks),max(h$breaks),length.out=100) #seq of x for pdf
+lines(x = xlines,y=dnorm(xlines,mu1_st, sqrt(1/(prec1_st*kappa1_st))) *length(x)*diff(h$breaks)[1])
+
+#____ nd ____
+x <- sample_10knormals_nd #sample
+h <- hist(x, breaks = 20, plot=FALSE) #generate hist
+plot(h, col="grey") #plot hist
+xlines <-seq(min(h$breaks),max(h$breaks),length.out=100) #seq of x for pdf
+lines(x = xlines,y=dnorm(xlines,mu1_nd, sqrt(1/(prec1_nd*kappa1_nd))) *length(x)*diff(h$breaks)[1])
+
+
+
 
 
 
