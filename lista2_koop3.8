@@ -1,1 +1,45 @@
 
+set.seed(123)
+
+n <- 100
+k <- 2
+
+epsilon.n <- as.matrix(rnorm(n,0,1)) 
+beta.k <- as.matrix(c(0,1))
+x0 <- c(rep(1,n))
+x1 <- runif(n)
+X.nk <- as.matrix(data.frame(X_0 = x0, X_1 = x1))
+Y.n <- X.nk%*%beta.k + epsilon.n
+
+beta_hat <- (t(X.nk)%*%X.nk)%*%(solve(t(X.nk)%*%X.nk)%*%(t(X.nk)%*%Y.n))
+nu_hat <- n - k
+s2_hat <- ((t(Y.n - X.nk%*%beta.k))%*%((Y.n - X.nk%*%beta.k)))/nu_hat
+
+S <- n
+beta_ <- beta.k
+V_ <- diag(1, 2)
+s2inv_ <- 1
+s2_ <- 1/s2inv_
+nu_ <- 1
+
+alphaG_ <- nu_/2
+betaG_ <- s2inv_*V_         #ou s0_st^2 ?
+prec_ <- alphaG_*solve(betaG_)
+
+V.pt <- solve(solve(V_) + t(X.nk)%*%X.nk) 
+beta.pt <- V.pt%*%(solve(V_%*%beta_ + beta_hat)
+nu.pt <- s2inv_ + n
+s2inv.pt <- nu.pt/(nu_*s2_ + nu_hat*s2_hat + t(beta_hat - beta_)%*%solve(V_ + solve(t(X.nk)))%*%(beta_hat - beta_)
+
+
+
+
+
+
+
+
+mu1_st <- (kappa0_st*mu0_st + S*mean(Y_s))/(kappa0_st + S)
+kappa1_st <- kappa0_st + S                                       # n*
+alpha1_st <- alpha0_st + S/2
+beta1_st <- beta0_st + RSS_Ys/2 + (kappa0_st*S*((mu0_st - mean(Y_s))^2))/(2*(kappa0_st + S))
+prec1_st <- alpha1_st/beta1_st
