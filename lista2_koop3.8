@@ -27,9 +27,10 @@ betaG_ <- s2inv_*V_         #ou s0_st^2 ?
 prec_ <- alphaG_*solve(betaG_)
 
 V.pt <- solve(solve(V_) + t(X.nk)%*%X.nk) 
-beta.pt <- V.pt%*%(solve(V_%*%beta_ + beta_hat)
+beta.pt <- V.pt%*%(solve(V_)%*%beta_ + t(X.nk)%*%X.nk%*%beta_hat)
+
 nu.pt <- s2inv_ + n
-s2inv.pt <- nu.pt/(nu_*s2_ + nu_hat*s2_hat + t(beta_hat - beta_)%*%solve(V_ + solve(t(X.nk)))%*%(beta_hat - beta_)
+s2inv.pt <- nu.pt/(nu_*s2_ + nu_hat*s2_hat + t(beta_hat - beta_)%*%solve(V_ + solve(t(X.nk)%*%X.nk))%*%(beta_hat - beta_))
 
 
 
