@@ -1,1 +1,29 @@
+install.packages("MASS")
+library(MASS)
+mean_vector <- c(1, 3)
+variance_vector <- c(1, 2) # Variance for each variable
+correlation <- 0.4
 
+cov_matrix <- matrix(c(variance_vector[1], correlation, correlation, variance_vector[2]), nrow = 2)
+
+M100k <- 100000
+M10k <- 10000
+M1k <- 1000
+
+x_M1k <- mvrnorm(M1k, mu = mean_vector, Sigma = cov_matrix)
+x_M10k <- mvrnorm(M10k, mu = mean_vector, Sigma = cov_matrix)
+x_M100k <- mvrnorm(M100k, mu = mean_vector, Sigma = cov_matrix)
+
+mu.zM1k <- mean(x_M1k[,1]*x_M1k[,2])
+mu.zM10k <- mean(x_M10k[,1]*x_M10k[,2])
+mu.zM100k <- mean(x_M100k[,1]*x_M100k[,2])
+
+sig2.zM1k <- sd(x_M1k[,1]*x_M1k[,2])^2
+sig2.zM10k <- sd(x_M10k[,1]*x_M10k[,2])^2
+sig2.zM100k <- sd(x_M100k[,1]*x_M100k[,2])^2
+
+
+mu.z <- c(mu.zM1k, mu.zM10k, mu.zM100k  )
+sig2.z <- c(sig2.zM1k, sig2.zM10k, sig2.zM100k)
+sig2.z.num <- c(sig2.zM1k/sqrt(M1k), sig2.zM10k/sqrt(M10k), sig2.zM100k/sqrt(M100k))
+estimates <- data.frame(mu.z = mu.z, sig2.z = sig2.z, sig2.z.num = sig2.z.num)
