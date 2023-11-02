@@ -1,1 +1,19 @@
 
+sample_10knormals <- numeric(M10k)
+for (i in 1:M10k) {
+  sample_10knormals[i] <- rnorm(1, mean = 0, sd = 1)
+}
+mu_hat_10k <- mean(sample_10knormals)
+mu_hat_10k
+
+> set.seed(123)
+> sample_10knormals <- numeric(M10k)
+> for (i in 1:M10k) {
++     sample_10knormals[i] <- rnorm(1, mean = 0, sd = 1)
++ }
+> mu_hat_10k <- mean(sample_10knormals)
+> mu_hat_10k
+[1] -0.002371702
+> set.seed(123)
+> mean(rnorm(M10k, mean = 0, sd = 1))
+[1] -0.002371702
