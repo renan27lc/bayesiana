@@ -1,1 +1,23 @@
 
+install.packages("MASS")
+library(MASS)
+mean_vector <- c(0, 0)
+variance_vector <- c(1, 1) # Variance for each variable
+correlation <- 0.4
+
+cov_matrix <- matrix(c(variance_vector[1], correlation, correlation, variance_vector[2]), nrow = 2)
+
+#3a)
+
+x <- mvrnorm(100, mu = mean_vector, Sigma = cov_matrix)
+MC_x <- c(mean(x[,1]), mean(x[,2]))
+
+#3b)
+S = 100
+#Gibbs_x <- matrix(c(numeric(S),numeric(S)), 100, 2)
+Gibbs_x1 <- numeric(S)
+
+for (i in 1:S) {
+    Gibbs_x1[i] <- rnorm(1, mean = 0, sd = 1) + rho*(rho - Gibbs_x2[i])
+}
+
