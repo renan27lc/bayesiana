@@ -1,19 +1,79 @@
 
-sample_10knormals <- numeric(M10k)
-for (i in 1:M10k) {
-  sample_10knormals[i] <- rnorm(1, mean = 0, sd = 1)
+set.seed(123)
+
+#2a)
+
+sample <- numeric(S)
+for (i in 1:S) {
+    sample[i] <- rnorm(1, mean = 0, sd = 1)
 }
-mu_hat_10k <- mean(sample_10knormals)
-mu_hat_10k
+c(mean(sample), sd(sample))
+
+#2b)
+sqrt( sd(sample)/S)
+
+#2c)
+
+S = 30
+S = 100
+S = 10000
+
+#2d)
+
+meanMC <- function(x) {
+  meanMC <- mean(rnorm(x, mean = 0, sd = 1))
+  return(meanMC)
+}
+
+M1k = 1000
+MCsample <- numeric(M1k)
+for (i in 1:M1k) {
+   MCsample[i] <- meanMC(S)
+}
+
+percentage_above_threshold <- mean(abs(MCsample) > 0.01) * 100
+cat("Percentage of observations above 0.01: ", percentage_above_threshold, "%\n")
+
+
+
+
+
 
 set.seed(123)
-sample_10knormals <- numeric(M10k)
+sample_M10knormals <- numeric(M10k)
 for (i in 1:M10k) {
-    sample_10knormals[i] <- rnorm(1, mean = 0, sd = 1)
+    sample_M10knormals[i] <- rnorm(1, mean = 0, sd = 1)
 }
-mu_hat_10k <- mean(sample_10knormals)
-mu_hat_10k
-# [1] -0.002371702
+mu_hat_M10k <- mean(sample_M10knormals)
+sig2_hat_M10k <- sd(sample_M10knormals)
+c(mu_hat_M10k, sig2_hat_M10k)
+
+M30 <- 30
+sample_M30normals <- numeric(M30)
+for (i in 1:M30) {
+    sample_M30normals[i] <- rnorm(1, mean = 0, sd = 1)
+}
+mu_hat_M30 <- mean(sample_M30normals)
+sig2_hat_M30 <- sd(sample_30normals)
+c(mu_hat_M30, sig2_hat_M30)
+
+M100 <- 100
+sample_M100normals <- numeric(M100)
+for (i in 1:M100) {
+    sample_M100normals[i] <- rnorm(1, mean = 0, sd = 1)
+}
+mu_hat_M100 <- mean(sample_M100normals)
+sig2_hat_M100 <- sd(sample_M100normals)
+c(mu_hat_M100, sig2_hat_M100)
+
+
+
+
+
+
+
+
 set.seed(123)
 mean(rnorm(M10k, mean = 0, sd = 1))
 # [1] -0.002371702
+sd(rnorm(M10k, mean = 0, sd = 1))
