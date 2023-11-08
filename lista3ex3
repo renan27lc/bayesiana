@@ -13,11 +13,57 @@ x <- mvrnorm(100, mu = mean_vector, Sigma = cov_matrix)
 MC_x <- c(mean(x[,1]), mean(x[,2]))
 
 #3b)
-S = 100
-#Gibbs_x <- matrix(c(numeric(S),numeric(S)), 100, 2)
-Gibbs_x1 <- numeric(S)
 
-for (i in 1:S) {
-    Gibbs_x1[i] <- rnorm(1, mean = 0, sd = 1) + rho*(rho - Gibbs_x2[i])
+set.seed
+
+Sx2 <- 200
+Gibbs_x <- data.frame( rho1 = numeric(Sx2), rho2 = numeric(Sx2), rho3 = numeric(Sx2), rho4 = numeric(Sx2))
+Gibbs_x[1,] = rnorm(1, mean = 0, sd = 1)
+
+rho <- c(0,0.5,0.99,0.999)
+
+for (i in 1:(Sx2-1)) {
+    Gibbs_x[i+1,] <- rnorm(1, mean = 0, sd = 1) + rho*(rho - Gibbs_x[i,])
 }
+
+Gibbs_x1 <- data.frame( rho1 = numeric(Sx2/2), rho2 = numeric(Sx2/2), rho3 = numeric(Sx2/2), rho4 = numeric(Sx2/2))
+Gibbs_x2 <- data.frame( rho1 = numeric(Sx2/2), rho2 = numeric(Sx2/2), rho3 = numeric(Sx2/2), rho4 = numeric(Sx2/2))
+
+Gibbs_x1 <- Gibbs_x[seq(1, 200, by = 2),]
+Gibbs_x2 <- Gibbs_x[seq(2, 200, by = 2),]
+
+means_Gibbs <- data.frame (Rho = c(1:4), mean_x1 = numeric(4), mean_x2 = numeric(4) )
+
+for (i in 1:4){
+means_Gibbs[i,2] <- mean(Gibbs_x1[,i])
+means_Gibbs[i,3] <- mean(Gibbs_x2[,i])
+}
+
+
+
+
+means <- data.frame( 
+
+
+
+
+
+
+#================ history ============
+Sx2 <- 200
+Gibbs_x <- numeric(Sx2)
+Gibbs_x[1] = rnorm(1, mean = 0, sd = 1)
+
+rho <- c(0,0.5,0.99,0.999)
+
+for (i in 1:(Sx2-1)) {
+    Gibbs_x[i+1] <- rnorm(1, mean = 0, sd = 1) + rho*(rho - Gibbs_x[i])
+}
+
+Gibbs_x1 <- vector("numeric", length = length(Gibbs_x) %/% 2)
+Gibbs_x2 <- vector("numeric", length = length(Gibbs_x) %/% 2)
+
+Gibbs_x1 <- Gibbs_x[seq(1, length(Gibbs_x), by = 2)]
+Gibbs_x2 <- Gibbs_x[seq(2, length(Gibbs_x), by = 2)]
+
 
