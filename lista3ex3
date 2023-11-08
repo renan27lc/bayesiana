@@ -77,21 +77,16 @@ for (i in 1:4){
 Var_Gibbs[i,2] <- mean(Gibbs_Varx1[,i])
 Var_Gibbs[i,3] <- mean(Gibbs_Varx2[,i])
 }
-Vars <- rbind (Vars_MC, Var_Gibbs)
-View(Vars)
-
-
-
-
-
-
-
-
-
-
-
 Vars <- rbind (Var_MC, Var_Gibbs)
 View(Vars)
+
+
+
+
+
+
+
+
 
 
 
