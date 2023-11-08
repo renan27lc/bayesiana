@@ -45,11 +45,51 @@ means_Gibbs[i,3] <- mean(Gibbs_x2[,i])
 means <- rbind (means_MC, means_Gibbs)
 View(means)
 
-Var_Gibbs <- data.frame (Rho = rho, mean_x1 = numeric(4), mean_x2 = numeric(4) )
-for (i in 1:4){
-Var_Gibbs[i,2] <- (sd(Gibbs_x1[,i]))^2
-Var_Gibbs[i,3] <- (sd(Gibbs_x2[,i]))^2
+
+
+
+
+
+
+
+
+
+
+
+
+Gibbs_Varx <- data.frame( rho1 = numeric(Sx2), rho2 = numeric(Sx2), rho3 = numeric(Sx2), rho4 = numeric(Sx2))
+Gibbs_Varx[1,] = 1 / rgamma(1, shape = 2, rate = 1)
+
+rho <- c(0,0.5,0.99,0.999)
+
+for (i in 1:(Sx2-1)) {
+    Gibbs_Varx[i+1,] <- 1 / rgamma(1, shape = 2, rate = 1) + rho*(rho - Gibbs_Varx[i,])
 }
+
+Gibbs_Varx1 <- data.frame( rho1 = numeric(Sx2/2), rho2 = numeric(Sx2/2), rho3 = numeric(Sx2/2), rho4 = numeric(Sx2/2))
+Gibbs_Varx2 <- data.frame( rho1 = numeric(Sx2/2), rho2 = numeric(Sx2/2), rho3 = numeric(Sx2/2), rho4 = numeric(Sx2/2))
+
+Gibbs_Varx1 <- Gibbs_Varx[seq(1, Sx2, by = 2),]
+Gibbs_Varx2 <- Gibbs_Varx[seq(2, Sx2, by = 2),]
+
+Var_Gibbs <- data.frame (Rho = rho, Var_x1 = numeric(4), Var_x2 = numeric(4) )
+for (i in 1:4){
+Var_Gibbs[i,2] <- mean(Gibbs_Varx1[,i])
+Var_Gibbs[i,3] <- mean(Gibbs_Varx2[,i])
+}
+Vars <- rbind (Vars_MC, Var_Gibbs)
+View(Vars)
+
+
+
+
+
+
+
+
+
+
+
 Vars <- rbind (Var_MC, Var_Gibbs)
 View(Vars)
 
