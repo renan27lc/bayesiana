@@ -46,17 +46,6 @@ means <- rbind (means_MC, means_Gibbs)
 View(means)
 
 
-
-
-
-
-
-
-
-
-
-
-
 Gibbs_Varx <- data.frame( rho1 = numeric(Sx2), rho2 = numeric(Sx2), rho3 = numeric(Sx2), rho4 = numeric(Sx2))
 Gibbs_Varx[1,] = 1 / rgamma(1, shape = 2, rate = 1)
 
