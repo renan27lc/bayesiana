@@ -13,8 +13,8 @@ S <- 100
 
 set.seed(123)
 
-x <- mvrnorm(S, mu = mean_vector, Sigma = cov_matrix)
-MC_x <- c(NA, mean(x[,1]), mean(x[,2]))
+MC_x <- mvrnorm(S, mu = mean_vector, Sigma = cov_matrix)
+means_MC <- c(NA, mean(x[,1]), mean(x[,2]))
 
 #3b)
 
@@ -43,7 +43,7 @@ means_Gibbs[i,2] <- mean(Gibbs_x1[,i])
 means_Gibbs[i,3] <- mean(Gibbs_x2[,i])
 }
 
-means <- rbind (MC_x, means_Gibbs)
+means <- rbind (means_MC, means_Gibbs)
 View(means)
 
 
