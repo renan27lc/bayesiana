@@ -15,6 +15,7 @@ set.seed(123)
 
 MC_x <- mvrnorm(S, mu = mean_vector, Sigma = cov_matrix)
 means_MC <- c(NA, mean(x[,1]), mean(x[,2]))
+Var_MC <- c(NA, (sd(x[,1]))^2, (sd(x[,2]))^2)
 
 #3b)
 
@@ -37,14 +38,24 @@ Gibbs_x1 <- Gibbs_x[seq(1, Sx2, by = 2),]
 Gibbs_x2 <- Gibbs_x[seq(2, Sx2, by = 2),]
 
 means_Gibbs <- data.frame (Rho = rho, mean_x1 = numeric(4), mean_x2 = numeric(4) )
-
 for (i in 1:4){
 means_Gibbs[i,2] <- mean(Gibbs_x1[,i])
 means_Gibbs[i,3] <- mean(Gibbs_x2[,i])
 }
-
 means <- rbind (means_MC, means_Gibbs)
 View(means)
+
+Var_Gibbs <- data.frame (Rho = rho, mean_x1 = numeric(4), mean_x2 = numeric(4) )
+for (i in 1:4){
+Var_Gibbs[i,2] <- (sd(Gibbs_x1[,i]))^2
+Var_Gibbs[i,3] <- (sd(Gibbs_x2[,i]))^2
+}
+Vars <- rbind (Var_MC, Var_Gibbs)
+View(Vars)
+
+
+
+
 
 
 
