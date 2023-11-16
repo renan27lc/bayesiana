@@ -1,7 +1,13 @@
-# Generate random samples from the beta distribution
+
+# a)
 n <- 100  # Number of random samples
 samples <- rbeta(M10k, 2.7, 6.3)
 
 hist(samples, main = "Beta Distribution", xlab = "Value", ylab = "Frequency", col = "gray", border = "black")
 
+#b)
 
+# quero que:
+hist(runif(M10k,0,1))
+# vire:
+hist(rbeta(M10k, 2.7, 6.3))
