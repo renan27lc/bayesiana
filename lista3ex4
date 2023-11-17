@@ -58,3 +58,5 @@ acf(samples)
 acf(MHsample)
 
 # como muitas vezes o valor de X_s vai ser igual ao de X_{s-1}, durante essa amostragem de m10k vai ter menos draws diferentes um do outro, e portanto menos chance de que um próximo draw colora pra fora de onde já foi colorido
+
+# engraçado que são duas amostras tão diferentes (plot(samples) =/= plot(MSsample)) mas que geram um histograma tão parecido. pa. discutir com o prof.
