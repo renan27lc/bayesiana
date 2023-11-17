@@ -18,9 +18,9 @@ hist(rbeta(M10k, 2.7, 6.3))
 
 
 
-likelihood <- function(x,alpha,beta) {
-  likelihood <- (x^(alpha - 1))*((1 - x)^(beta - 1))
-  return(likelihood)
+likelihood_core.apt <- function(x,alpha,beta) {
+  likelihood_core.apt <- (x^(alpha - 1))*((1 - x)^(beta - 1))
+  return(likelihood_core.apt)
 }
 
 X_0 = 0.5
@@ -30,7 +30,7 @@ for (i in 1:M10k) {
    MHsample[i] <- X_0
 
 X_star <- runif(1,0,1)
-alpha <- min((likelihood(X_star,2.7,6.3)/likelihood(X_0,2.7,6.3)),1)
+alpha <- min((likelihood_core.apt(X_star,2.7,6.3)/likelihood_core.apt(X_0,2.7,6.3)),1)
 alpha
 
 # random draw from a bernoulli with p = alpha. If draw = 0, then use X_0 in the next round. If draw = 1, use X_star in the next round.
