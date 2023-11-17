@@ -40,6 +40,18 @@ if (runif(1) < alpha) {
 }
 }
 
+#c
+
+hist(samples)
+mean(samples)
+sd(samples)^2
+
+hist(MHsample)
+mean(MHsample)
+sd(MHsample)^2
+
+#d
+
 plot(samples)
 plot(MHsample)
 acf(samples)
