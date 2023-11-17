@@ -11,3 +11,14 @@ hist(samples, main = "Beta Distribution", xlab = "Value", ylab = "Frequency", co
 hist(runif(M10k,0,1))
 # vire:
 hist(rbeta(M10k, 2.7, 6.3))
+
+
+#likelihood:
+(X^(2.7 - 1))*((1 - X)^(6.3 - 1))
+
+
+
+X0 = 0.5
+X* = 0.9413158
+
+
