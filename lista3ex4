@@ -42,20 +42,20 @@ if (runif(1) < alpha) {
 
 #c
 
-hist(samples)
-mean(samples)
-sd(samples)^2
+hist(samples[1000:10000])
+mean(samples[1000:10000])
+sd(samples[1000:10000])^2
 
-hist(MHsample)
-mean(MHsample)
-sd(MHsample)^2
+hist(MHsample[1000:10000])
+mean(MHsample[1000:10000])
+sd(MHsample[1000:10000])^2
 
 #d
 
-plot(samples)
-plot(MHsample)
-acf(samples)
-acf(MHsample)
+plot(samples[1000:10000])
+plot(MHsample[1000:10000])
+acf(samples[1000:10000])
+acf(MHsample[1000:10000])
 
 # como muitas vezes o valor de X_s vai ser igual ao de X_{s-1}, durante essa amostragem de m10k vai ter menos draws diferentes um do outro, e portanto menos chance de que um próximo draw colora pra fora de onde já foi colorido
 
