@@ -1,7 +1,14 @@
+#===================== book ========================
+beta_0 <- c(0,10,5000,10000,10000)
+Sigma_0 <- rbind(c(10000^2, 0, 0, 0, 0), c(0, 25, 0, 0, 0), c(0, 0, 2500^2, 0, 0), c(0, 0, 0, 5000^2, 0), c(0, 0, 0, 0, 5000^2))
+inv.s_0 <- 4*10^(-8) 
+nu_o <- 5
+#===================== ex5 ========================
 beta_0 <- c(0,10,5000,10000,10000)
 Sigma_0 <- rbind(c(10^8, 0, 0, 0, 0), c(0, 25, 0, 0, 0), c(0, 0, 6.25*10^6, 0, 0), c(0, 0, 0, 2.5*10^8, 0), c(0, 0, 0, 0, 2.5*10^8))
 s_0 <- 1.25*10^8
 nu_o <- 5
+
 y <- HPRICE[,1]
 X <- as.matrix(cbind(rep(1, 546),HPRICE[,2:5])) 
 
@@ -19,7 +26,7 @@ beta_1 <- function(h) {
 nu_1 <- nrow(HPRICE) + nu_0
 
 s_1 <- function(beta) {
-  (t(y - X%*%beta)%*%(y - X%*%beta) + nu_0*s_0)/nu_1
+  (t(y - X%*%beta)%*%(y - X%*%beta) + nu_0/s_0)/nu_1
 }
 
 M <- 20
@@ -30,9 +37,18 @@ beta_gibbs[1,] <- beta_hat
 
 library(MASS)
 for (i in 2:M) {
-  h_gibbs[i] <- rgamma(1, nu_1/2, nu_1*s_1(beta_gibbs[i-1,])/2)
+  h_gibbs[i] <- (rgamma(1, nu_1/2, nu_1*s_1(beta_gibbs[i-1,])/2))
   beta_gibbs[i,] <- mvrnorm(1, beta_1(h_gibbs[i]), Sigma_1(h_gibbs[i]))
 }
+
+
+#library(extraDistr)
+library(MASS)
+for (i in 2:M) {
+  h_gibbs[i] <- 1/(rinvgamma(1, nu_1/2, nu_1*s_1(beta_gibbs[i-1,])/2))
+  beta_gibbs[i,] <- mvrnorm(1, beta_1(h_gibbs[i]), Sigma_1(h_gibbs[i]))
+}
+
 
 
 h_gibbs
