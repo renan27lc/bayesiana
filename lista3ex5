@@ -3,12 +3,14 @@ Sigma_0 <- rbind(c(10^8, 0, 0, 0, 0), c(0, 25, 0, 0, 0), c(0, 0, 6.25*10^6, 0, 0
 s_0 <- 1.25*10^8
 nu_o <- 5
 y <- HPRICE[,1]
-X <- HPRICE[,2:5] 
+X <- cbind(rep(1, 546),HPRICE[,2:5]) 
 h <- sd(y)^(- 2)
-Sigma_1 <- solve(solve(Sigma_0 + h*(t(X)%*%X)))
+
+Sigma_1 <- solve(solve(Sigma_0 + h*(t(X)%*%as.matrix(X))))
 beta_1 <- Sigma_1%*%(Sigma_0%*%beta_0 + h*(t(X)%*%y))
 nu_1 <- N + nu_0
+beta_hat <- coefficients(lm(y ~ as.matrix(X[,2:5])))
 s_1 <- (t(y - X%*%beta_hat)%*%(y - X%*%beta_hat) + nu_0*s_0)/nu_1
 
-coef
-lm(y ~ X)
+h <- rnorm(1, beta_1, Sigma_1)
+beta_hat <- rgamma(1, nu_1/2, nu_1*s_1/2)
