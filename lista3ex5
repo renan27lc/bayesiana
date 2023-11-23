@@ -41,7 +41,9 @@ gibbs_NIG <- function(B, theta) {
 gibbs_NIG(10,c(h_hat,beta_hat))
 gibbs_NIG(1000,c(h_hat,beta_hat))[990:1000,]
 
-colMeans(gibbs_NIG(11000,c(h_hat,beta_hat))[1000:11000,])
+colMeans(gibbs_NIG(11000,c(h_hat,beta_hat))[1000:11000,2:6])
+
+
 
 
 
