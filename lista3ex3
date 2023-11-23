@@ -21,6 +21,10 @@ E3a <- data.frame(Mean = means_MC[2:3], StError = sd_MC[2:3])
 
 MC_x1 <- rnorm(S)
 MC_x2 <- rnorm(S)
+MC_x <- matrix(0, S, 2)
+MC_x[,1] <- MC_x1
+MC_x[,2] <- MC_x2
+
 
 means_MC_uni <- c(NA, mean(MC_x1), mean(MC_x2))
 sd_MC_uni <- c(NA, sd(MC_x1), sd(MC_x2))
@@ -101,6 +105,71 @@ E3b <- data.frame(c(mean(chain_B100[,1]),mean(chain_B100[,2])), StError = c(sd(c
 
 #3c
 
+set.seed(123)
+
+y <- c(0, 0, 1, 1)
+theta <- c(-2.5, 2.5)
+rho<- 0.8
+sigma <- 1*sqrt(1 - rho^2)
+#, rho, y, sigma
+gibbs_N2var <- function(B, theta, y, rho) {
+  theta_sims <- matrix(0, B, 2)
+  for (i in 1:B) {
+    m1 <- y[1] + rho * (theta[2] - y[2])
+    theta[1] <- rnorm(1, m1, y[3]*sqrt(1 - rho^2))
+    m2 <- y[2] + rho * (theta[1] - y[1])
+    theta[2] <- rnorm(1, m2, y[4]*sqrt(1 - rho^2))
+    theta_sims[i, ] <- theta
+  }
+  return(theta_sims)
+}
+
+chainB100_rho0 <- gibbs_N2var(100, c(-2.5, 2.5), y, 0)
+chainB100_rho05 <- gibbs_N2var(100, c(-2.5, 2.5), y, 0.5)
+chainB100_rho099 <- gibbs_N2var(100, c(-2.5, 2.5), y, 0.99)
+chainB100_rho0999 <- gibbs_N2var(100, c(-2.5, 2.5), y, 0.999)
+
+
+E3c <- data.frame(Mean = c(mean(chainB100_rho0),mean(chainB100_rho05),mean(chainB100_rho099),mean(chainB100_rho0999)), StError = c(sd(chainB100_rho0),sd(chainB100_rho05),sd(chainB100_rho099),sd(chainB100_rho0999)))
+
+hist(MC_x)
+hist(chainB100_rho0)
+hist(chainB100_rho05)
+hist(chainB100_rho099)
+hist(chainB100_rho0999)
+
+#3d
+
+chainB10k_rho0 <- gibbs_N2var(10000, c(-2.5, 2.5), y, 0)
+chainB10k_rho05 <- gibbs_N2var(10000, c(-2.5, 2.5), y, 0.5)
+chainB10k_rho099 <- gibbs_N2var(10000, c(-2.5, 2.5), y, 0.99)
+chainB10k_rho0999 <- gibbs_N2var(10000, c(-2.5, 2.5), y, 0.999)
+
+
+E3d <- data.frame(Mean = c(mean(chainB10k_rho0),mean(chainB10k_rho05),mean(chainB10k_rho099),mean(chainB10k_rho0999)), StError = c(sd(chainB10k_rho0),sd(chainB10k_rho05),sd(chainB10k_rho099),sd(chainB10k_rho0999)))
+
+MC_x1_S10k <- rnorm(10000)
+MC_x2_S10k <- rnorm(10000)
+MC_x_S10k <- matrix(0, 10000, 2)
+MC_x_S10k[,1] <- MC_x1
+MC_x_S10k[,2] <- MC_x2
+
+hist(MC_x_S10k)
+hist(chainB10k_rho0)
+hist(chainB10k_rho05)
+hist(chainB10k_rho099)
+hist(chainB10k_rho0999)
+
+
+
+
+
+
+
+
+#================ history ============
+
+
 Sx2 <- 2*S
 Gibbs_x <- data.frame( rho1 = numeric(Sx2), rho2 = numeric(Sx2), rho3 = numeric(Sx2), rho4 = numeric(Sx2))
 Gibbs_x[1,] = rnorm(1, mean = 0, sd = 1)
@@ -150,28 +219,8 @@ Vars <- rbind (Var_MC, Var_Gibbs)
 View(Vars)
 
 
+#---------------------
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#================ history ============
 Sx2 <- 200
 Gibbs_x <- numeric(Sx2)
 Gibbs_x[1] = rnorm(1, mean = 0, sd = 1)
