@@ -29,7 +29,7 @@ E3a_uni <- data.frame(Mean = means_MC_uni[2:3], StError = sd_MC_uni[2:3])
 #3b)
 
 set.seed(123)
-
+rho <- 0.4
 x1_gibbs <- numeric(S)
 x2_gibbs <- numeric(S)
 x1_gibbs[1] <- runif(1)
@@ -45,7 +45,16 @@ sig_x2.x1 <- sd(MC_x2)*sqrt(1 - rho^2)
 x2_gibbs[i+1] <- rnorm(1, mu_x2.x1 , sig_x2.x1)
 }
 
-rho <- 0.4
+#or
+set.seed(123)
+
+S <- 100
+rho <- 0.8
+
+x1_gibbs <- numeric(S)
+x2_gibbs <- numeric(S)
+x1_gibbs[1] <- -2.5
+x2_gibbs[1] <- 2.5
 
 for (i in 1:S) {
   mu_x1.x2 <- 0 + rho*(1/1)*(x2_gibbs[i] - 0)
@@ -57,7 +66,38 @@ for (i in 1:S) {
   x2_gibbs[i+1] <- rnorm(1, mu_x2.x1 , sig_x2.x1)
 }
 
-E3b <- data.frame(Mean = c(mean(x1_gibbs),mean(x2_gibbs)), StError = c(sd(x1_gibbs),sd(x2_gibbs)))
+c(mean(x1_gibbs),mean(x2_gibbs[2:length(x2_gibbs)]))
+
+E3b <- data.frame(Mean = c(mean(x1_gibbs),mean(x2_gibbs[2:length(x2_gibbs)])), StError = c(sd(x1_gibbs),sd(x2_gibbs[2:length(x2_gibbs)])))
+
+#or
+
+set.seed(123)
+
+y <- c(0, 0)
+theta <- c(-2.5, 2.5)
+rho<- 0.8
+sigma <- 1*sqrt(1 - rho^2)
+#, rho, y, sigma
+gibbs_N2var <- function(B, theta, y, rho, sigma) {
+  theta_sims <- matrix(0, B, 2)
+  for (i in 1:B) {
+    m1 <- y[1] + rho * (theta[2] - y[2])
+    theta[1] <- rnorm(1, m1, sigma)
+    m2 <- y[2] + rho * (theta[1] - y[1])
+    theta[2] <- rnorm(1, m2, sigma)
+    theta_sims[i, ] <- theta
+  }
+  return(theta_sims)
+}
+
+chain_B100 <- gibbs_N2var(100, c(-2.5, 2.5), c(0, 0), 0.8, 1*sqrt(1 - rho^2))
+chain_B10k <- gibbs_N2var(10000, c(-2.5, 2.5), c(0, 0), 0.8, 1*sqrt(1 - rho^2))
+
+c(mean(chain_B100[,1]),mean(chain_B100[,2]))
+
+E3b <- data.frame(c(mean(chain_B100[,1]),mean(chain_B100[,2])), StError = c(sd(chain_B100[,1]),sd(chain_B100[,2])))
+
 
 #3c
 
