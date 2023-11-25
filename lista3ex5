@@ -43,9 +43,8 @@ gibbs_NIG <- function(B, theta) {
   return(theta_sims)
 }
 
-gibbs_NIG(1000,c(h_hat,beta_hat))[990:1000,]
-
-colMeans(gibbs_NIG(11000,c(h_hat,beta_hat))[1000:11000,2:6])
+E5_sample <- gibbs_NIG(11000,c(h_hat,beta_hat))
+E5 <- data.frame(Means = colMeans(E5_sample[1000:11000,]), StErrors = apply(E5_sample[1000:11000,], 2, sd) )
 
 
 
