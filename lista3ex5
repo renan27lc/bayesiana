@@ -1,9 +1,17 @@
-
-#===================== book ========================
+library(MASS)
+#===================== book prior ========================
 beta_0 <- c(0,10,5000,10000,10000)
 Sigma_0 <- rbind(c(10000^2, 0, 0, 0, 0), c(0, 25, 0, 0, 0), c(0, 0, 2500^2, 0, 0), c(0, 0, 0, 5000^2, 0), c(0, 0, 0, 0, 5000^2))
 inv.s_0 <- 4*10^(-8) 
 nu_0 <- 5
+
+#===================== ex5 prior ========================
+beta_0 <- c(0,10,5000,10000,10000)
+Sigma_0 <- rbind(c(10^8, 0, 0, 0, 0), c(0, 25, 0, 0, 0), c(0, 0, 6.25*10^6, 0, 0), c(0, 0, 0, 2.5*10^8, 0), c(0, 0, 0, 0, 2.5*10^8))
+s_0 <- 1.25*10^8
+nu_o <- 5
+
+#===================== gibbs ========================
 
 y <- HPRICE[,1]
 X <- as.matrix(cbind(rep(1, length(y)),HPRICE[,2:5])) 
@@ -12,14 +20,12 @@ h_hat <- sd(y)^(- 2)
 beta_hat <- as.matrix(coefficients(lm(y ~ as.matrix(X[,2:5]))))
 
 Sigma_1 <- function(h) {
-  solve(solve(Sigma_0 + h*(t(X)%*%X)))
+  solve(solve(Sigma_0) + h*(t(X)%*%X))
 }
-#Sigma_1(h_hat)
 
 beta_1 <- function(h) {
   Sigma_1(h)%*%(solve(Sigma_0)%*%beta_0 + h*(t(X)%*%y))
 }
-#beta_1(h_hat)
 
 nu_1 <- nrow(HPRICE) + nu_0
 
@@ -27,18 +33,16 @@ s_1 <- function(beta) {
   (t(y - X%*%beta)%*%(y - X%*%beta) + nu_0/inv.s_0)/nu_1
 }
 
-
 gibbs_NIG <- function(B, theta) {
   theta_sims <- matrix(0, B, 6)
   for (i in 1:B) {
     theta[1] <- rgamma(1, nu_1/2, nu_1*s_1(theta[2:6])/2)
-    theta[2:6] <- mvrnorm(1, beta_1(theta[1]), sqrt(Sigma_1(theta[1])))
+    theta[2:6] <- mvrnorm(1, beta_1(theta[1]), Sigma_1(theta[1]))
     theta_sims[i, ] <- theta
   }
   return(theta_sims)
 }
 
-gibbs_NIG(10,c(h_hat,beta_hat))
 gibbs_NIG(1000,c(h_hat,beta_hat))[990:1000,]
 
 colMeans(gibbs_NIG(11000,c(h_hat,beta_hat))[1000:11000,2:6])
@@ -61,7 +65,7 @@ colMeans(gibbs_NIG(11000,c(h_hat,beta_hat))[1000:11000,2:6])
 
 
 
-
+#===================== history ========================
 
 
 #===================== book ========================
