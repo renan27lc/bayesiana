@@ -45,6 +45,8 @@ gibbs_NIG <- function(B, theta) {
 
 E5_sample <- gibbs_NIG(11000,c(h_hat,beta_hat))
 
+#5ai
+
 S_A <- E5_sample[1001:2000,]
 S_C <- E5_sample[7001:11000,]
 
@@ -56,6 +58,8 @@ CD(E5_sample[1:1000,], E5_sample[7001:11000,])
 #ou seja, com S_0 + S_1 = 11k nem precisaria de burn-in, pois S_0 = 1:1000 já converge com S_3 - 7001:11000. 
 
 E5_S1 <- E5_sample[1001:11000,]
+
+#5aii
 
 E5 <- data.frame(Means = colMeans(E5_S1), StErrors = apply(E5_S1, 2, sd), ConvDiagn =  CD(S_A, S_C))
 
@@ -71,6 +75,66 @@ for(i in 1:(length(E5_S1)/ncol(E5_S1))) {
 }
 
 expected_price.rdm <- mean(y_star)
+
+
+#5b
+
+Sigma_1 <- function(h) {
+  solve(h*(t(X)%*%X))
+}
+
+beta_1 <- function(h) {
+  Sigma_1(h)%*%(h*(t(X)%*%y))
+}
+
+nu_1 <- nrow(HPRICE)
+
+s_1 <- function(beta) {
+  (t(y - X%*%beta)%*%(y - X%*%beta))/nu_1
+}
+
+
+gibbs_NIG <- function(B, theta) {
+  theta_sims <- matrix(0, B, 6)
+  for (i in 1:B) {
+    theta[1] <- rgamma(1, nu_1/2, nu_1*s_1(theta[2:6])/2)
+    theta[2:6] <- mvrnorm(1, beta_1(theta[1]), Sigma_1(theta[1]))
+    theta_sims[i, ] <- theta
+  }
+  return(theta_sims)
+}
+
+E5_sample <- gibbs_NIG(11000,c(h_hat,beta_hat))
+
+#CD
+
+S_A <- E5_sample[1001:2000,]
+S_C <- E5_sample[7001:11000,]
+
+CD <- function(S_A, S_C) {
+  (colMeans(S_A) - colMeans(S_C))/(apply(S_A, 2, sd)/sqrt(length(S_A)/ncol(S_A)) + (apply(S_C, 2, sd))/sqrt(length(S_C)/ncol(S_C)))
+}
+
+CD(E5_sample[1:1000,], E5_sample[7001:11000,])
+
+E5_S1 <- E5_sample[1001:11000,]
+
+E5 <- data.frame(Means = colMeans(E5_S1), StErrors = apply(E5_S1, 2, sd), ConvDiagn =  CD(S_A, S_C))
+
+(E5$Means - c(h_hat,beta_hat))/c(h_hat,beta_hat)
+
+#prediction
+
+house <- c(1, 5000, 2, 2, 1)
+
+expected_price1 <- sum(E5[2:6,]$Means*house)
+
+y_star <- numeric(length(E5_S1)/ncol(E5_S1))
+for(i in 1:(length(E5_S1)/ncol(E5_S1))) {
+  y_star[i] <- rnorm(1,house%*%E5_S1[i,2:6],sqrt(1/E5_S1[i,1]))
+}
+
+expected_price2 <- mean(y_star)
 
 
 
