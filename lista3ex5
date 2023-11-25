@@ -44,9 +44,33 @@ gibbs_NIG <- function(B, theta) {
 }
 
 E5_sample <- gibbs_NIG(11000,c(h_hat,beta_hat))
-E5 <- data.frame(Means = colMeans(E5_sample[1000:11000,]), StErrors = apply(E5_sample[1000:11000,], 2, sd) )
 
+S_A <- E5_sample[1001:2000,]
+S_C <- E5_sample[7001:11000,]
 
+CD <- function(S_A, S_C) {
+  (colMeans(S_A) - colMeans(S_C))/(apply(S_A, 2, sd)/sqrt(length(S_A)/ncol(S_A)) + (apply(S_C, 2, sd))/sqrt(length(S_C)/ncol(S_C)))
+}
+
+CD(E5_sample[1:1000,], E5_sample[7001:11000,])
+#ou seja, com S_0 + S_1 = 11k nem precisaria de burn-in, pois S_0 = 1:1000 já converge com S_3 - 7001:11000. 
+
+E5_S1 <- E5_sample[1001:11000,]
+
+E5 <- data.frame(Means = colMeans(E5_S1), StErrors = apply(E5_S1, 2, sd), ConvDiagn =  CD(S_A, S_C))
+
+#5aiii
+
+house <- c(1, 5000, 2, 2, 1)
+
+expected_price.det <- sum(E5[2:6,]$Means*house)
+
+y_star <- numeric(length(E5_S1)/ncol(E5_S1))
+for(i in 1:(length(E5_S1)/ncol(E5_S1))) {
+  y_star[i] <- rnorm(1,house%*%E5_S1[i,2:6],sqrt(1/E5_S1[i,1]))
+}
+
+expected_price.rdm <- mean(y_star)
 
 
 
