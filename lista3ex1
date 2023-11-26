@@ -1,29 +1,33 @@
 install.packages("MASS")
 library(MASS)
-mean_vector <- c(1, 3)
-variance_vector <- c(1, 2) # Variance for each variable
-correlation <- 0.4
 
-cov_matrix <- matrix(c(variance_vector[1], correlation, correlation, variance_vector[2]), nrow = 2)
+S100k <- 100000
+S10k <- 10000
+S1k <- 1000
 
-M100k <- 100000
-M10k <- 10000
-M1k <- 1000
+x_S1k <- mvrnorm(S1k, c(1, 3), matrix((c(1, 0.4, 0.4, 2)), 2))
+x_S10k <- mvrnorm(S10k, c(1, 3), matrix((c(1, 0.4, 0.4, 2)), 2))
+x_S100k <- mvrnorm(S100k, c(1, 3), matrix((c(1, 0.4, 0.4, 2)), 2))
 
-x_M1k <- mvrnorm(M1k, mu = mean_vector, Sigma = cov_matrix)
-x_M10k <- mvrnorm(M10k, mu = mean_vector, Sigma = cov_matrix)
-x_M100k <- mvrnorm(M100k, mu = mean_vector, Sigma = cov_matrix)
+mu.zS1k <- mean(x_S1k[,1]*x_S1k[,2])
+mu.zS10k <- mean(x_S10k[,1]*x_S10k[,2])
+mu.zS100k <- mean(x_S100k[,1]*x_S100k[,2])
 
-mu.zM1k <- mean(x_M1k[,1]*x_M1k[,2])
-mu.zM10k <- mean(x_M10k[,1]*x_M10k[,2])
-mu.zM100k <- mean(x_M100k[,1]*x_M100k[,2])
-
-sig2.zM1k <- sd(x_M1k[,1]*x_M1k[,2])^2
-sig2.zM10k <- sd(x_M10k[,1]*x_M10k[,2])^2
-sig2.zM100k <- sd(x_M100k[,1]*x_M100k[,2])^2
+sig2.zS1k <- sd(x_S1k[,1]*x_S1k[,2])^2
+sig2.zS10k <- sd(x_S10k[,1]*x_S10k[,2])^2
+sig2.zS100k <- sd(x_S100k[,1]*x_S100k[,2])^2
 
 
-mu.z <- c(mu.zM1k, mu.zM10k, mu.zM100k  )
-sig2.z <- c(sig2.zM1k, sig2.zM10k, sig2.zM100k)
-sig2.z.num <- c(sig2.zM1k/sqrt(M1k), sig2.zM10k/sqrt(M10k), sig2.zM100k/sqrt(M100k))
-estimates <- data.frame(mu.z = mu.z, sig2.z = sig2.z, sig2.z.num = sig2.z.num)
+mu.z <- c(mu.zS1k, mu.zS10k, mu.zS100k  )
+sig2.z <- c(sig2.zS1k, sig2.zS10k, sig2.zS100k)
+sig2.z.num <- c(sig2.zS1k/sqrt(S1k), sig2.zS10k/sqrt(S10k), sig2.zS100k/sqrt(S100k))
+est_values <- data.frame(mu.z = mu.z, sig2.z = sig2.z, sig2.z.num = sig2.z.num)
+
+true_values <- data.frame(mu.z = (1*3 + 0.4*sqrt(1*2)), sig2.z = (1^2*2 + 3^2*1 + 2*0.4*1*3*sqrt(1*2)), sig2.z.num = "NA")
+
+E1 <- rbind(est_values, true_values)
+row.names(E1) <- c("S1k", "S10k", "S100k","true")
+
+E1
+
+#values not converging to the true ones... understand why
