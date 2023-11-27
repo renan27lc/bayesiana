@@ -1,22 +1,21 @@
 
 set.seed(123)
 
-#2a)
-
-sample <- numeric(S)
-for (i in 1:S) {
-    sample[i] <- rnorm(1, mean = 0, sd = 1)
-}
-c(mean(sample), sd(sample))
-
-#2b)
-sqrt( sd(sample)/S)
+#2ab)
+    
+    MC <- function(S){
+      sample <- numeric(S)
+      for (i in 1:S) {
+        sample[i] <- rnorm(1, 0, 1)
+      }
+      return(data.frame(Mean = mean(sample), StError = sd(sample), NumStError = sd(sample)/sqrt(S)))
+    }
 
 #2c)
 
-S = 30
-S = 100
-S = 10000
+MC(30)
+MC(100)
+MC(10000)
 
 #2d)
 
