@@ -2,14 +2,14 @@
 set.seed(123)
 
 #2ab)
-    
-    MC <- function(S){
-      sample <- numeric(S)
-      for (i in 1:S) {
-        sample[i] <- rnorm(1, 0, 1)
-      }
-      return(data.frame(Mean = mean(sample), StError = sd(sample), NumStError = sd(sample)/sqrt(S)))
-    }
+
+MC <- function(S){
+  sample <- numeric(S)
+  for (i in 1:S) {
+    sample[i] <- rnorm(1, 0, 1)
+  }
+  return(data.frame(Mean = mean(sample), StError = sd(sample), NumStError = sd(sample)/sqrt(S)))
+}
 
 #2c)
 
@@ -19,23 +19,27 @@ MC(10000)
 
 #2d)
 
-meanMC <- function(x) {
-  meanMC <- mean(rnorm(x, mean = 0, sd = 1))
-  return(meanMC)
-}
+optimal_S <- (1.96/0.01)^2
 
 M1k = 1000
-MCsample <- numeric(M1k)
+MC_samples1k <- numeric(M1k)
 for (i in 1:M1k) {
-   MCsample[i] <- meanMC(S)
+  MC_samples1k[i] <- mean(rnorm(optimal_S, 0, 1))
 }
 
-percentage_above_threshold <- mean(abs(MCsample) > 0.01) * 100
-cat("Percentage of observations above 0.01: ", percentage_above_threshold, "%\n")
+sum(abs(MC_samples1k) > 0.01)
 
 
 
 
+
+
+
+
+
+
+
+#========== history ===============
 
 
 set.seed(123)
