@@ -1,22 +1,13 @@
 
-# a)
-samples <- rbeta(M10k, 2.7, 6.3)
-
-hist(samples, main = "Beta Distribution", xlab = "Value", ylab = "Frequency", col = "gray", border = "black")
+#a)
+samples <- rbeta(10000, 2.7, 6.3)
 
 #b)
 
 # quero que:
-hist(runif(M10k,0,1))
+#hist(runif(10000,0,1))
 # vire:
-hist(rbeta(M10k, 2.7, 6.3))
-
-
-#likelihood:
-(X^(2.7 - 1))*((1 - X)^(6.3 - 1))
-
-
-
+#hist(rbeta(10000, 2.7, 6.3))
 
 likelihood_core.apt <- function(x,alpha,beta) {
   likelihood_core.apt <- (x^(alpha - 1))*((1 - x)^(beta - 1))
@@ -25,19 +16,17 @@ likelihood_core.apt <- function(x,alpha,beta) {
 
 X_0 = 0.5
 
-MHsample <- numeric(M10k)
-for (i in 1:M10k) {
-   MHsample[i] <- X_0
-
-X_star <- runif(1,0,1)
-alpha <- min((likelihood_core.apt(X_star,2.7,6.3)/likelihood_core.apt(X_0,2.7,6.3)),1)
-alpha
-
-# random draw from a bernoulli with p = alpha. If draw = 0, then use X_0 in the next round. If draw = 1, use X_star in the next round.
-
-if (runif(1) < alpha) {
-  X_0 <- X_star
-}
+MHsample <- numeric(10000)
+for (i in 1:10000) {
+  MHsample[i] <- X_0
+  
+  X_star <- runif(1,0,1)
+  alpha <- min((likelihood_core.apt(X_star,2.7,6.3)/likelihood_core.apt(X_0,2.7,6.3)),1)
+  alpha
+  
+  if (runif(1) < alpha) {
+    X_0 <- X_star
+  }
 }
 
 #c
@@ -58,5 +47,7 @@ acf(samples[1000:10000])
 acf(MHsample[1000:10000])
 
 # como muitas vezes o valor de X_s vai ser igual ao de X_{s-1}, durante essa amostragem de m10k vai ter menos draws diferentes um do outro, e portanto menos chance de que um próximo draw colora pra fora de onde já foi colorido
+
+# engraçado que são duas amostras tão diferentes (plot(samples) =/= plot(MSsample)) mas que geram um histograma tão parecido. pa. discutir com o prof.
 
 # engraçado que são duas amostras tão diferentes (plot(samples) =/= plot(MSsample)) mas que geram um histograma tão parecido. pa. discutir com o prof.
