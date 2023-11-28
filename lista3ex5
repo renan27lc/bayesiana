@@ -61,7 +61,7 @@ E5_S1 <- E5_sample[1001:11000,]
 
 #5aii
 
-E5 <- data.frame(Means = colMeans(E5_S1), StErrors = apply(E5_S1, 2, sd), ConvDiagn =  CD(S_A, S_C))
+E5ii <- data.frame(Means = colMeans(E5_S1), StErrors = apply(E5_S1, 2, sd), ConvDiagn =  CD(S_A, S_C), row.names = c("h", "intercept", c(colnames(HPRICE[2:5]))))
 
 #5aiii
 
