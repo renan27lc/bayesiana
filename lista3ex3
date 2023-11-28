@@ -1,5 +1,111 @@
 install.packages("MASS")
 library(MASS)
+
+#----------3a)
+
+MC <- function(S){
+  MC_sample <- matrix(c(numeric(S),numeric(S)),S)
+  for (i in 1:S) {
+    MC_sample[i,] <-mvrnorm(1, c(0, 0) , matrix(c(1, 0.4, 0.4, 1),2))
+  }
+  return(data.frame(Mean = colMeans(MC_sample), StError = apply(MC_sample, 2, sd), NumStError = apply(MC_sample, 2, sd)/sqrt(S)))
+}
+
+MC(100)
+
+#----------3b)
+
+set.seed(123)
+
+S <- 100
+rho <- 0.8
+
+x1_gibbs <- numeric(S)
+x2_gibbs <- numeric(S)
+x1_gibbs[1] <- -2.5
+x2_gibbs[1] <- 2.5
+
+for (i in 1:S) {
+  mu_x1.x2 <- 0 + rho*(1/1)*(x2_gibbs[i] - 0)
+  sig_x1.x2 <- 1*sqrt(1 - rho^2)
+  x1_gibbs[i] <- rnorm(1, mu_x1.x2 , sig_x1.x2)
+  
+  mu_x2.x1 <- 0 + rho*(1/1)*(x1_gibbs[i] - 0)
+  sig_x2.x1 <- 1*sqrt(1 - rho^2)
+  x2_gibbs[i+1] <- rnorm(1, mu_x2.x1 , sig_x2.x1)
+}
+
+c(mean(x1_gibbs),mean(x2_gibbs[2:length(x2_gibbs)]))
+
+E3b <- data.frame(Mean = c(mean(x1_gibbs),mean(x2_gibbs[2:length(x2_gibbs)])), StError = c(sd(x1_gibbs),sd(x2_gibbs[2:length(x2_gibbs)])))
+
+#----------3c
+
+set.seed(123)
+
+y <- c(0, 0, 1, 1)
+theta <- c(-2.5, 2.5)
+rho<- 0.8
+sigma <- 1*sqrt(1 - rho^2)
+#, rho, y, sigma
+gibbs_N2var <- function(B, theta, y, rho) {
+  theta_sims <- matrix(0, B, 2)
+  for (i in 1:B) {
+    m1 <- y[1] + rho * (theta[2] - y[2])
+    theta[1] <- rnorm(1, m1, y[3]*sqrt(1 - rho^2))
+    m2 <- y[2] + rho * (theta[1] - y[1])
+    theta[2] <- rnorm(1, m2, y[4]*sqrt(1 - rho^2))
+    theta_sims[i, ] <- theta
+  }
+  return(theta_sims)
+}
+
+chainB100_rho0 <- gibbs_N2var(100, c(-2.5, 2.5), y, 0)
+chainB100_rho05 <- gibbs_N2var(100, c(-2.5, 2.5), y, 0.5)
+chainB100_rho099 <- gibbs_N2var(100, c(-2.5, 2.5), y, 0.99)
+chainB100_rho0999 <- gibbs_N2var(100, c(-2.5, 2.5), y, 0.999)
+
+E3c <- data.frame(Mean = c(mean(chainB100_rho0),mean(chainB100_rho05),mean(chainB100_rho099),mean(chainB100_rho0999)), StError = c(sd(chainB100_rho0),sd(chainB100_rho05),sd(chainB100_rho099),sd(chainB100_rho0999)))
+
+# a condicional total de X_1 tem dois termos: sua marginal (o que queremos) e um segundo termo multiplicado por rho.
+# é deste segundo termo que queremos marginalizar X1, o que ocorre assintoticamente, visto que a covariância (rho) é sempre menor que a variância.
+# Mas um rho alto torna persistente o efeito daquele segundo termo da condicional total de X1, atrasando a conversão.
+
+hist(mvrnorm(100, c(0, 0) , matrix(c(1, 0.4, 0.4, 1),2)))
+hist(chainB100_rho0)
+hist(chainB100_rho05)
+hist(chainB100_rho099)
+hist(chainB100_rho0999)
+
+#----------3d
+
+chainB10k_rho0 <- gibbs_N2var(10000, c(-2.5, 2.5), y, 0)
+chainB10k_rho05 <- gibbs_N2var(10000, c(-2.5, 2.5), y, 0.5)
+chainB10k_rho099 <- gibbs_N2var(10000, c(-2.5, 2.5), y, 0.99)
+chainB10k_rho0999 <- gibbs_N2var(10000, c(-2.5, 2.5), y, 0.999)
+
+
+E3d <- data.frame(Mean = c(mean(chainB10k_rho0),mean(chainB10k_rho05),mean(chainB10k_rho099),mean(chainB10k_rho0999)), StError = c(sd(chainB10k_rho0),sd(chainB10k_rho05),sd(chainB10k_rho099),sd(chainB10k_rho0999)))
+
+hist(mvrnorm(10000, c(0, 0) , matrix(c(1, 0.4, 0.4, 1),2)))
+hist(chainB10k_rho0)
+hist(chainB10k_rho05)
+hist(chainB10k_rho099)
+hist(chainB10k_rho0999)
+
+
+
+
+
+
+
+
+
+
+#================ history ============
+
+
+library(MASS)
 mean_vector <- c(0, 0)
 variance_vector <- c(1, 1) # Variance for each variable
 correlation <- 0.4
@@ -165,9 +271,6 @@ hist(chainB10k_rho0999)
 
 
 
-
-
-#================ history ============
 
 
 Sx2 <- 2*S
