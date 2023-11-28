@@ -31,13 +31,10 @@ for (i in 1:10000) {
 
 #c
 
-hist(samples[1000:10000])
-mean(samples[1000:10000])
-sd(samples[1000:10000])^2
+E4c <- data.frame(Mean = c(mean(samples[1000:10000]),mean(MHsample[1000:10000])), StError = c(sd(samples[1000:10000])^2,sd(MHsample[1000:10000])^2), row.names = c("MC", "MH"))
 
+hist(samples[1000:10000])
 hist(MHsample[1000:10000])
-mean(MHsample[1000:10000])
-sd(MHsample[1000:10000])^2
 
 #d
 
