@@ -1,4 +1,3 @@
-
 # Assuming your data frame is named "yields"
 # Make sure the column names are set appropriately
 
@@ -7,6 +6,9 @@ optimal_p_values <- numeric(121)
 
 # Create an empty vector to store the variance of residuals for each time series
 residual_variances <- numeric(121)
+
+# Create an empty vector to store the intercepts for each time series
+intercepts <- numeric(121)
 
 # Loop through each time series
 for (i in 1:121) {
@@ -34,6 +36,9 @@ for (i in 1:121) {
   # Collect the variance of residuals
   residual_variances[i] <- var(resid(final_arima_model))
   
+  # Collect the intercept of the ARIMA model
+  intercepts[i] <- final_arima_model$coef[1]  # 1 corresponds to the intercept coefficient
+  
   # Store the optimal p value
   optimal_p_values[i] <- optimal_p
 }
@@ -41,3 +46,22 @@ for (i in 1:121) {
 # Display or use the results as needed
 print(optimal_p_values)
 print(residual_variances)
+print(intercepts)
+
+
+
+#========================================================================================================================================================================
+
+
+yields_Y <- yields[2:nrow(yields),]
+yields_X <- yields[1:(nrow(yields) - 1),]
+yields_X <- cbind(intercept = 1, yields_X)
+
+
+
+
+
+
+
+
+
