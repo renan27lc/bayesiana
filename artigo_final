@@ -98,11 +98,30 @@ for (i in 1:length(residual_variances)) {
   }
 }
 
+H <- 120
+T <- nrow(yields)
+N <- ncol(yields)
+
 # X is the
 X <- 
 
-# Y is the
-Y <- 
+# There are H Y_h matrixes. For h = 1:H, Y_h is the (T-h)xN matrix: for i in 1:(T-h) Y[i,] <- yields[(h+i),]
+
+
+Y_list <- list()
+for (h in 1:H) {
+  Y_h <- matrix(0, nrow = (T - h), ncol = N)
+  Y_list[[h]] <- Y_h
+}
+
+# Accessing the matrices from the list
+#for (h in 1:H) {
+#  print(Y_list[[h]])
+#}
+
+for (h = 1:H) {
+  for (i in 1:(T-h)) {
+    Y_h[i,] <- yields[(h+i),]
 
 # Psi_apr is the
 Psi_apr <- 
