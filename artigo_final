@@ -5,10 +5,10 @@
 optimal_p_values <- numeric(121)
 
 # Create an empty vector to store the variance of residuals for each time series
-residual_variances <- numeric(121)
+residual_variances_ar <- numeric(121)
 
 # Create an empty vector to store the intercepts for each time series
-intercepts <- numeric(121)
+intercepts_ar <- numeric(121)
 
 # Loop through each time series
 for (i in 1:121) {
@@ -34,10 +34,10 @@ for (i in 1:121) {
   final_arima_model <- arima(time_series, order = c(optimal_p, 0, 0))
   
   # Collect the variance of residuals
-  residual_variances[i] <- var(resid(final_arima_model))
+  residual_variances_ar[i] <- var(resid(final_arima_model))
   
   # Collect the intercept of the ARIMA model
-  intercepts[i] <- final_arima_model$coef[1]  # 1 corresponds to the intercept coefficient
+  intercepts_ar[i] <- final_arima_model$coef[1]  # 1 corresponds to the intercept coefficient
   
   # Store the optimal p value
   optimal_p_values[i] <- optimal_p
@@ -45,8 +45,8 @@ for (i in 1:121) {
 
 # Display or use the results as needed
 print(optimal_p_values)
-print(residual_variances)
-print(intercepts)
+print(residual_variances_ar)
+print(intercepts_ar)
 
 
 
@@ -124,12 +124,16 @@ for (h in 1:H) {
 #View(Y_list[[1]])
 
 
+# Psi_apr is a N+1 by N matrix. It is the expected value of Psi_h which is the junction of:
+#the vector Phi_0h. whose expected value is intercepts_ar
+Phi_0apr <- intercepts_ar
 
+#the matrix Phi_1h[i,j] whose expected value is 0.99 if i = j and 0 if i != j.In other words, it is a diagonal matrix with all values = 0.99 
+Phi_1apr <- diag(0.99, N)
 
-# Psi_apr is the
-Psi_apr <- 
-
-
+Psi_apr <- matrix( nrow = N + 1, ncol = N)
+Psi_apr[1, ] <- Phi_0apr
+Psi_apr[2:(N + 1), ] <- Phi_1apr
 
 
 
