@@ -90,11 +90,11 @@ summary(model
 #Final goal: 
 # matrix Psi_apt <- solve(solve(Sigma_apr) + t(X)%*%X)%*%(solve(Sigma_apr) %*% Psi_apr + t(X) %*% Y)
 
-#Sigma_apr is the covariance matrix of Phi_1h, which, based on (2), equals to:
-Sigma_apr <- matrix( nrow =  length(residual_variances), ncol =  length(residual_variances))
+#Omega_apr is the covariance matrix of Phi_1h, which, based on (2), equals to:
+Omega_apr <- matrix( nrow =  length(residual_variances), ncol =  length(residual_variances))
 for (i in 1:length(residual_variances)) {
   for (j in 1:length(residual_variances)) {
-    Sigma_apr[i, j] <- residual_variances[i] / residual_variances[j]
+    Omega_apr[i, j] <- residual_variances[i] / residual_variances[j]
   }
 }
 
