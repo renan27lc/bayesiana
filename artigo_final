@@ -103,16 +103,22 @@ T <- nrow(yields)
 N <- ncol(yields)
 
 # X is the
-X <- 
-
-# There are H Y_h matrixes. For h = 1:H, Y_h is the (T-h)xN matrix: for i in 1:(T-h) Y[i,] <- yields[(h+i),]
 
 # Initialize a list to store matrices
-Y_list <- vector("list", length = H)
+X_list <- vector("list", length = H)
 
 # Fill the matrices in the list with rows from "yields"
 for (h in 1:H) {
-  Y_list[[h]] <- yields[(h + 1):(T - (H - h)), ]
+  X_list[[h]] <- yields[(1):(T - h), ]
+}
+
+#View(X_list[[1]])
+
+# There are H Y_h matrixes. For h = 1:H, Y_h is the (T-h)xN matrix: for i in 1:(T-h) Y[i,] <- yields[(h+i),]
+
+Y_list <- vector("list", length = H)
+for (h in 1:H) {
+  Y_list[[h]] <- yields[(h + 1):(T ), ]
 }
 
 #View(Y_list[[1]])
