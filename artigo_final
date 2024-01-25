@@ -107,21 +107,18 @@ X <-
 
 # There are H Y_h matrixes. For h = 1:H, Y_h is the (T-h)xN matrix: for i in 1:(T-h) Y[i,] <- yields[(h+i),]
 
+# Initialize a list to store matrices
+Y_list <- vector("list", length = H)
 
-Y_list <- list()
+# Fill the matrices in the list with rows from "yields"
 for (h in 1:H) {
-  Y_h <- matrix(0, nrow = (T - h), ncol = N)
-  Y_list[[h]] <- Y_h
+  Y_list[[h]] <- yields[(h + 1):(T - (H - h)), ]
 }
 
-# Accessing the matrices from the list
-#for (h in 1:H) {
-#  print(Y_list[[h]])
-#}
+#View(Y_list[[1]])
 
-for (h = 1:H) {
-  for (i in 1:(T-h)) {
-    Y_h[i,] <- yields[(h+i),]
+
+
 
 # Psi_apr is the
 Psi_apr <- 
