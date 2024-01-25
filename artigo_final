@@ -1,13 +1,5 @@
-# Assuming your data frame is named "yields"
-# Make sure the column names are set appropriately
-
-# Create an empty vector to store the optimal p for each time series
 optimal_p_values <- numeric(121)
-
-# Create an empty vector to store the variance of residuals for each time series
 residual_variances_ar <- numeric(121)
-
-# Create an empty vector to store the intercepts for each time series
 intercepts_ar <- numeric(121)
 
 # Loop through each time series
@@ -30,32 +22,12 @@ for (i in 1:121) {
     }
   }
   
-  # Fit the final AR model with the optimal p
   final_arima_model <- arima(time_series, order = c(optimal_p, 0, 0))
-  
-  # Collect the variance of residuals
   residual_variances_ar[i] <- var(resid(final_arima_model))
-  
-  # Collect the intercept of the ARIMA model
   intercepts_ar[i] <- final_arima_model$coef[1]  # 1 corresponds to the intercept coefficient
-  
-  # Store the optimal p value
   optimal_p_values[i] <- optimal_p
 }
 
-# Display or use the results as needed
-print(optimal_p_values)
-print(residual_variances_ar)
-print(intercepts_ar)
-
-
-
-#========================================================================================================================================================================
-
-
-yields_Y <- yields[2:nrow(yields),]
-yields_X <- yields[1:(nrow(yields) - 1),]
-yields_X <- cbind(intercept = 1, yields_X)
 
 
 
@@ -63,59 +35,30 @@ yields_X <- cbind(intercept = 1, yields_X)
 
 
 
-
-# Step 1: Create lagged variables
-yields_lagged <- cbind(yields[-(1:h), ], yields[1:(nrow(yields)-h), ])
-
-# Step 2: Create column names for the lagged variables
-colnames(yields_lagged) <- c(paste0("Y", 1:ncol(yields)), paste0("Ylag", 1:ncol(yields)))
-
-# Step 3: Reshape data to long format
-library(tidyr)
-yields_long <- pivot_longer(as.data.frame(yields_lagged), cols = everything(), names_to = "variable", values_to = "value")
-
-# Step 4: Fit the multivariate linear model
-model <- lm(value ~ lag(value, h) + variable + lag(variable, h), data = yields_long)
-
-# Step 5: Summary of the model
-summary(model
-
-
-
-#========================================================================================================================================================================
-
-
-
-
-#Final goal: 
-# matrix Psi_apt <- solve(solve(Sigma_apr) + t(X)%*%X)%*%(solve(Sigma_apr) %*% Psi_apr + t(X) %*% Y)
-
-#Omega_apr is the covariance matrix of Phi_1h, which, based on (2), equals to:
-Omega_apr <- matrix( nrow =  length(residual_variances), ncol =  length(residual_variances))
-for (i in 1:length(residual_variances)) {
-  for (j in 1:length(residual_variances)) {
-    Omega_apr[i, j] <- residual_variances[i] / residual_variances[j]
+theta <- 0.00001
+#Omega_apr [NxN] is the covariance matrix of Phi_1h, which, based on (2), equals to:
+Omega_apr <- matrix( nrow =  length(residual_variances_ar), ncol =  length(residual_variances_ar))
+for (i in 1:length(residual_variances_ar)) {
+  for (j in 1:length(residual_variances_ar)) {
+    Omega_apr[i, j] <- theta * residual_variances_ar[i] / residual_variances_ar[j]
   }
 }
+
+det(Omega_apr)
 
 H <- 120
 T <- nrow(yields)
 N <- ncol(yields)
 
-# X is the
-
-# Initialize a list to store matrices
 X_list <- vector("list", length = H)
-
-# Fill the matrices in the list with rows from "yields"
+yieldsX <- cbind(rep(1, T), yields)
 for (h in 1:H) {
-  X_list[[h]] <- yields[(1):(T - h), ]
+  X_list[[h]] <- yieldsX[(1):(T - h), ]
 }
 
 #View(X_list[[1]])
 
 # There are H Y_h matrixes. For h = 1:H, Y_h is the (T-h)xN matrix: for i in 1:(T-h) Y[i,] <- yields[(h+i),]
-
 Y_list <- vector("list", length = H)
 for (h in 1:H) {
   Y_list[[h]] <- yields[(h + 1):(T ), ]
@@ -140,6 +83,50 @@ Psi_apr[2:(N + 1), ] <- Phi_1apr
 
 
 
+
+
+
+#Final goal: 
+# I want to make H matrixes Psi_apt_h <- solve(solve(Omega_apr) + t(X_list[[h]])%*%X)%*%(solve(Omega_apr) %*% Psi_apr + t(X_list[[h]]) %*% Y_list[[h]])
+
+given that:
+Omega_apr is an NxN matrix
+Psi_apr is an (N+1)xN matrix
+yields is a TxN matrix
+H <- 120
+T <- nrow(yields)
+N <- ncol(yields)
+
+and given that X_list and Y_list were obtained as such:
+
+X_list <- vector("list", length = H)
+yieldsX <- cbind(rep(1, T), yields)
+for (h in 1:H) {
+  X_list[[h]] <- yieldsX[(1):(T - h), ]
+}
+
+Y_list <- vector("list", length = H)
+for (h in 1:H) {
+  Y_list[[h]] <- yields[(h + 1):(T ), ]
+}
+
+#============------------------RESULT---------+++++++++++++++
+
+# Initialize a list to store matrices
+Psi_apt_list <- vector("list", length = H)
+
+# Perform the matrix calculations
+for (h in 1:H) {
+  # Calculate intermediate matrices
+  intermediate_matrix1 <- solve(solve(Omega_apr) + t(X_list[[h]]) %*% X_list[[h]])
+  intermediate_matrix2 <- solve(Omega_apr) %*% Psi_apr + t(X_list[[h]]) %*% Y_list[[h]]
+  
+  # Calculate Psi_apt_h
+  Psi_apt_h <- intermediate_matrix1 %*% intermediate_matrix2
+  
+  # Store the result in the list
+  Psi_apt_list[[h]] <- Psi_apt_h
+}
 
 
 
