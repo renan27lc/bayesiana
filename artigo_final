@@ -44,6 +44,19 @@ for (i in 1:length(residual_variances_ar)) {
   }
 }
 
+Omega_apr <- matrix( nrow = length(residual_variances_ar), ncol = length(residual_variances_ar))
+
+for (i in 1:length(residual_variances_ar)) {
+  for (j in 1:length(residual_variances_ar)) {
+    if (i != j) {
+      Omega_apr[i, j] <- theta * residual_variances_ar[i] / residual_variances_ar[j]
+    } else {
+      Omega_apr[i, j] <- residual_variances_ar[i]  # Keep diagonal elements unchanged
+    }
+  }
+}
+
+
 det(Omega_apr)
 
 H <- 120
