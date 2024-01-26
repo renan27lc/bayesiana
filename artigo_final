@@ -131,8 +131,107 @@ Psi_apt_list <- vector("list", length = H)
 # Perform the matrix calculations
 for (h in 1:H) {
   # Calculate intermediate matrices
-  intermediate_matrix1 <- solve(solve(Omega_apr) + t(X_list[[h]]) %*% X_list[[h]])
-  intermediate_matrix2 <- solve(Omega_apr) %*% Psi_apr + t(X_list[[h]]) %*% Y_list[[h]]
+  intermediate_matrix1 <- solve(solve(Omega_apr) + t(X_list[[h]]) %*% as.matrix(X_list[[h]]))
+  intermediate_matrix2 <- solve(Omega_apr) %*% Psi_apr + t(X_list[[h]]) %*% as.matrix(Y_list[[h]])
+  
+  # Calculate Psi_apt_h
+  Psi_apt_h <- intermediate_matrix1 %*% intermediate_matrix2
+  
+  # Store the result in the list
+  Psi_apt_list[[h]] <- Psi_apt_h
+}
+
+
+
+
+
+
+
+#==============================-----SEM INTERCEPTO FODASS------============================================================
+
+
+optimal_p_values <- numeric(121)
+residual_variances_ar <- numeric(121)
+intercepts_ar <- numeric(121)
+
+# Loop through each time series
+for (i in 1:121) {
+  time_series <- yields[, i]
+  
+  # Initialize variables to store minimum BIC and optimal p
+  min_bic <- Inf
+  optimal_p <- 0
+  
+  # Try AR models with different values of p
+  for (p in 1:10) {  # You can adjust the range of p as needed
+    arima_model <- arima(time_series, order = c(p, 0, 0))
+    bic <- AIC(arima_model, k = log(length(time_series)))
+    
+    # Update optimal p if current model has lower BIC
+    if (bic < min_bic) {
+      min_bic <- bic
+      optimal_p <- p
+    }
+  }
+  
+  final_arima_model <- arima(time_series, order = c(optimal_p, 0, 0))
+  residual_variances_ar[i] <- var(resid(final_arima_model))
+  intercepts_ar[i] <- final_arima_model$coef[1]  # 1 corresponds to the intercept coefficient
+  optimal_p_values[i] <- optimal_p
+}
+
+
+theta <- 0.00001
+#Omega_apr [NxN] is the covariance matrix of Phi_1h, which, based on (2), equals to:
+Omega_apr <- matrix( nrow =  length(residual_variances_ar), ncol =  length(residual_variances_ar))
+for (i in 1:length(residual_variances_ar)) {
+  for (j in 1:length(residual_variances_ar)) {
+    Omega_apr[i, j] <- theta * residual_variances_ar[i] / residual_variances_ar[j]
+  }
+}
+
+Omega_apr <- matrix( nrow = length(residual_variances_ar), ncol = length(residual_variances_ar))
+
+for (i in 1:length(residual_variances_ar)) {
+  for (j in 1:length(residual_variances_ar)) {
+    if (i != j) {
+      Omega_apr[i, j] <- theta * residual_variances_ar[i] / residual_variances_ar[j]
+    } else {
+      Omega_apr[i, j] <- residual_variances_ar[i]  # Keep diagonal elements unchanged
+    }
+  }
+}
+
+
+det(Omega_apr)
+
+H <- 120
+T <- nrow(yields)
+N <- ncol(yields)
+
+X_list <- vector("list", length = H)
+for (h in 1:H) {
+  X_list[[h]] <- yields[(1):(T - h), ]
+}
+
+#View(X_list[[1]])
+
+# There are H Y_h matrixes. For h = 1:H, Y_h is the (T-h)xN matrix: for i in 1:(T-h) Y[i,] <- yields[(h+i),]
+Y_list <- vector("list", length = H)
+for (h in 1:H) {
+  Y_list[[h]] <- yields[(h + 1):(T ), ]
+}
+
+# Initialize a list to store matrices
+Psi_apt_list <- vector("list", length = H)
+
+Phi_1apr <- diag(0.99, N)
+
+# Perform the matrix calculations
+for (h in 1:H) {
+  # Calculate intermediate matrices
+  intermediate_matrix1 <- solve(solve(Omega_apr) + t(X_list[[h]]) %*% as.matrix(X_list[[h]]))
+  intermediate_matrix2 <- solve(Omega_apr) %*% Phi_1apr + t(X_list[[h]]) %*% as.matrix(Y_list[[h]])
   
   # Calculate Psi_apt_h
   Psi_apt_h <- intermediate_matrix1 %*% intermediate_matrix2
