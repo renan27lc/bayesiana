@@ -59,7 +59,7 @@ for (i in 1:length(residual_variances_ar)) {
 
 det(Omega_apr)
 
-H <- 120
+H <- 96
 T <- nrow(yields)
 N <- ncol(yields)
 
