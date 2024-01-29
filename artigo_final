@@ -359,25 +359,50 @@ for (t in 1:(T - W)) {
 
 
 
-yields_fin<-yields[2:199, 1:120] # t(1+1)=fev/16 até t(T)=jul/22; h(1-1)=M1 até h(H-1)=M120
-yields_ini<-yields[1:198, 2:121] # t(1)=jan/06 até t(T-1)=jun/22; h(1)=M2 até h(H)=M121
+E_yields_car_fin <- E_yields_car[, 1:(N - 1)] # t(W+1)=jan/15 até t(T)=jul/22; h(1-1)=M1 até h(H-1)=M120
+yields_W_ini<-yields[W:(T - 1), 2:N] # t(W)=dez/14 até t(T-1)=jun/22; h(1)=M2 até h(H)=M121
 
-mat_fin.rep<-t(as.data.frame(rep(as.data.frame(Maturities[1:120])[1],198)))
-mat_ini.rep<-t(as.data.frame(rep(as.data.frame(Maturities[2:121])[1],198)))
+mat_fin.repW<-t(as.data.frame(rep(as.data.frame(Maturities[1:120])[1],(T-W))))
+mat_ini.repW<-t(as.data.frame(rep(as.data.frame(Maturities[2:121])[1],(T-W))))
 
-rf.rep<-as.data.frame(rep(as.data.frame(yields[1:198,1])[1],120))
-rf<- as.matrix(rf.rep[,1]) 	#risk free rate
+rf.repW<-as.data.frame(rep(as.data.frame(yields[1:(T-W),1])[1],(N-1)))
 
-mns.lnP_fin<-as.data.frame(yields_fin*mat_fin.rep)	#minus lnP
-mns.lnP_ini<-as.data.frame(yields_ini*mat_ini.rep)
+E_mns.lnP_car_fin<-as.data.frame(E_yields_car_fin*mat_fin.repW)	#minus lnP
+mns.lnP_W_ini<-as.data.frame(yields_W_ini*mat_ini.repW)
 
-prices<-cbind(exp(-rf),exp(-mns.lnP_ini))
+E_r1mo_car<- -E_mns.lnP_car_fin + mns.lnP_W_ini	#return rate for holding the bond for 1 month
+E_rxs_car<- E_r1mo_car - rf.repW      # excess returns
 
-r_1mo<- mns.lnP_ini - mns.lnP_fin 	#return rate for holding the bond for 1 month
-r_xs<- r_1mo - rf.rep       # excess returns
+r_xs_W <- r_xs[W:(nrow(r_xs)), ]
+
+E_rxs_rw_W <- r_xs_W[1:(nrow(r_xs_W) - 1), ]
+rxs_rw_W <- r_xs[2:(nrow(r_xs_W)), ]
+MSPErw_W <- matrix(
+  apply(rxs_rw_W - E_rxs_rw_W, 2, function(col) mean(col^2)),
+  nrow = 1, ncol = ncol(rxs_rw_W)
+)
+
+E_rxs_xphyp <- 0
+MSPExphyp_W <- matrix(
+  apply(r_xs_W^2, 2, mean),
+  nrow = 1, ncol = ncol(r_xs_W)
+)
+
+MSPEcar_W <- matrix(
+  apply(r_xs_W - E_rxs_car, 2, function(col) mean(col^2)),
+  nrow = 1, ncol = ncol(r_xs_W)
+)
 
 
 
+
+
+
+
+
+
+
+#prices<-cbind(exp(-rf),exp(-mns.lnP_ini))
 
 rownames(mat_fin.rep)<-rownames(yields_fin)
 rownames(mat_ini.rep)<-rownames(yields_ini)
