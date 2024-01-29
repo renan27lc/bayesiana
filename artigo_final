@@ -351,19 +351,49 @@ for (t in 1:(T - W)) {
 }
 
 
-E_yields_fin_car <- matrix(nrow = (T - W), ncol = ncol(yields))
-rownames(E_yields_fin_car) <- rownames(yields[(W + 1):T,])
+E_yields_car <- matrix(nrow = (T - W), ncol = ncol(yields))
+rownames(E_yields_car) <- rownames(yields[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields_fin_car[t , ] <- as.matrix(Psi_apt_h1_list[[t]]) %*% t(yields[(t + 107), ])
+    E_yields_car[t , ] <- as.matrix(Psi_apt_h1_list[[t]]) %*% t(yields[(t + 107), ])
 }
 
 
 
+yields_fin<-yields[2:199, 1:120] # t(1+1)=fev/16 até t(T)=jul/22; h(1-1)=M1 até h(H-1)=M120
+yields_ini<-yields[1:198, 2:121] # t(1)=jan/06 até t(T-1)=jun/22; h(1)=M2 até h(H)=M121
+
+mat_fin.rep<-t(as.data.frame(rep(as.data.frame(Maturities[1:120])[1],198)))
+mat_ini.rep<-t(as.data.frame(rep(as.data.frame(Maturities[2:121])[1],198)))
+
+rf.rep<-as.data.frame(rep(as.data.frame(yields[1:198,1])[1],120))
+rf<- as.matrix(rf.rep[,1]) 	#risk free rate
+
+mns.lnP_fin<-as.data.frame(yields_fin*mat_fin.rep)	#minus lnP
+mns.lnP_ini<-as.data.frame(yields_ini*mat_ini.rep)
+
+prices<-cbind(exp(-rf),exp(-mns.lnP_ini))
+
+r_1mo<- mns.lnP_ini - mns.lnP_fin 	#return rate for holding the bond for 1 month
+r_xs<- r_1mo - rf.rep       # excess returns
 
 
 
 
-
-
+rownames(mat_fin.rep)<-rownames(yields_fin)
+rownames(mat_ini.rep)<-rownames(yields_ini)
+colnames(mat_fin.rep)<-colnames(yields_fin)
+colnames(mat_ini.rep)<-colnames(yields_ini)
+rownames(rf.rep)<-rownames(yields_ini)
+colnames(rf.rep)<-colnames(yields_ini)
+colnames(rf)<-"risk_free"
+rownames(rf)<-rownames(yields_ini)
+rownames(mns.lnP_fin)<-rownames(yields_fin)
+colnames(mns.lnP_fin)<-colnames(yields_fin)
+rownames(mns.lnP_ini)<-rownames(yields_ini)
+colnames(mns.lnP_ini)<-colnames(yields_ini)
+rownames(r_1mo)<-rownames(mns.lnP_fin)
+colnames(r_1mo)<-colnames(mns.lnP_fin)
+rownames(r_xs)<-rownames(mns.lnP_fin)
+colnames(r_xs)<-colnames(mns.lnP_fin)
 
 
