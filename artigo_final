@@ -351,3 +351,19 @@ for (t in 1:(T - W)) {
 }
 
 
+E_yields_fin_car <- matrix(nrow = (T - W), ncol = ncol(yields))
+rownames(E_yields_fin_car) <- rownames(yields[(W + 1):T,])
+for (t in 1:(T - W)) {
+    E_yields_fin_car[t , ] <- as.matrix(Psi_apt_h1_list[[t]]) %*% t(yields[(t + 107), ])
+}
+
+
+
+
+
+
+
+
+
+
+
