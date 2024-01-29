@@ -304,7 +304,7 @@ det(Omega_apr)
 H <- 12
 T <- nrow(yields)
 N <- ncol(yields)
-W <- 96
+W <- 108
 
 Y_list <- vector("list", length = H)
 for (h in 1:H) {
@@ -330,20 +330,24 @@ for (h in 1:H) {
 }
 
 # Initialize a list to store matrices
-Psi_apt_list <- vector("list", length = H)
+Psi_apt_h1_list <- vector("list", length = (T - W))
 
 Phi_1apr <- diag(0.99, N)
 
+X_list_h1<-X_list[[1]]
+Y_list_h1<-Y_list[[1]]
+
 # Perform the matrix calculations
-for (h in 1:H) {
+for (t in 1:(T - W)) {
   # Calculate intermediate matrices
-  intermediate_matrix1 <- solve(solve(Omega_apr) + t(X_list[[h]]) %*% as.matrix(X_list[[h]]))
-  intermediate_matrix2 <- solve(Omega_apr) %*% Phi_1apr + t(X_list[[h]]) %*% as.matrix(Y_list[[h]])
+  intermediate_matrix1_h1 <- solve(solve(Omega_apr) + t(X_list_h1[[t]]) %*% as.matrix(X_list_h1[[t]]))
+  intermediate_matrix2_h1 <- solve(Omega_apr) %*% Phi_1apr + t(X_list_h1[[t]]) %*% as.matrix(Y_list_h1[[t]])
   
   # Calculate Psi_apt_h
-  Psi_apt_h <- intermediate_matrix1 %*% intermediate_matrix2
+  Psi_apt_h1_t <- intermediate_matrix1_h1 %*% intermediate_matrix2_h1
   
   # Store the result in the list
-  Psi_apt_list[[h]] <- Psi_apt_h
+  Psi_apt_h1_list[[t]] <- Psi_apt_h1_t
 }
+
 
