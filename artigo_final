@@ -403,17 +403,17 @@ View(MSPEcar_W/MSPExphyp_W)
 
 
 
+#================================================================
 
 
 
-
-#==============================-----ROLLING WINDOW = 108, H=1 in whole code, ar with fixed 108 window, NO INTERCEPT------============================================================
 
 
 
 optimal_p_values <- numeric(121)
 residual_variances_ar <- numeric(121)
 intercepts_ar <- numeric(121)
+
 
 # Loop through each time series
 for (i in 1:121) {
@@ -461,6 +461,10 @@ for (i in 1:length(residual_variances_ar)) {
     }
   }
 }
+
+
+det(Omega_apr)
+
 
 T <- nrow(yields)
 N <- ncol(yields)
@@ -538,9 +542,10 @@ MSPExphyp_W <- matrix(
 )
 
 MSPEcar_W <- matrix(
-  apply(r_xs_W - E_rxs_car, 2, function(col) mean(col^2)),
+  apply(rxs_rw_W - E_rxs_car[2:(nrow(r_xs_W)), ], 2, function(col) mean(col^2)),
   nrow = 1, ncol = ncol(r_xs_W)
 )
+
 
 View(MSPEcar_W/MSPExphyp_W)
 
@@ -548,5 +553,131 @@ View(MSPEcar_W/MSPExphyp_W)
 #prices<-cbind(exp(-rf),exp(-mns.lnP_ini))
 #rownames(mat_fin.rep)<-rownames(yields_fin)
 #colnames(mat_fin.rep)<-colnames(yields_fin)
+
+
+
+
+
+#==============================-----ROLLING WINDOW = 108, H=1 in whole code, ar with fixed 108 window, NO INTERCEPT------============================================================
+
+
+
+
+optimal_p_values <- numeric(121)
+residual_variances_ar <- numeric(121)
+intercepts_ar <- numeric(121)
+
+
+# Loop through each time series
+for (i in 1:121) {
+  time_series <- yields[1:108, i]
+  
+  # Initialize variables to store minimum BIC and optimal p
+  min_bic <- Inf
+  optimal_p <- 0
+  
+  # Try AR models with different values of p
+  for (p in 1:10) {  # You can adjust the range of p as needed
+    arima_model <- arima(time_series, order = c(p, 0, 0))
+    bic <- AIC(arima_model, k = log(length(time_series)))
+    
+    # Update optimal p if current model has lower BIC
+    if (bic < min_bic) {
+      min_bic <- bic
+      optimal_p <- p
+    }
+  }
+  
+  final_arima_model <- arima(time_series, order = c(optimal_p, 0, 0))
+  residual_variances_ar[i] <- var(resid(final_arima_model))
+  intercepts_ar[i] <- final_arima_model$coef[1]  # 1 corresponds to the intercept coefficient
+  optimal_p_values[i] <- optimal_p
+}
+
+theta <- 0.00001
+
+  Omega_apr <- matrix( nrow = length(residual_variances_ar), ncol = length(residual_variances_ar))
+  for (i in 1:length(residual_variances_ar)) {
+    for (j in 1:length(residual_variances_ar)) {
+      if (i != j) {
+        Omega_apr[i, j] <- theta * residual_variances_ar[i] / residual_variances_ar[j]
+      } else {
+        Omega_apr[i, j] <- residual_variances_ar[i]  # Keep diagonal elements unchanged
+      }
+    }
+  }
+
+T <- nrow(yields)
+N <- ncol(yields)
+W <- 108
+
+Y_list_h1 <- lapply(1:(T - W), function(t) yields[(t + 1):(t + W - 1), ])
+X_list_h1 <- lapply(1:(T - W), function(t) yields[(t):(t + W - 2), ])
+
+# Initialize a list to store matrices
+Psi_apt_h1_list <- vector("list", length = (T - W))
+
+Phi_1apr <- diag(0.99, N)
+
+# Perform the matrix calculations
+for (t in 1:(T - W)) {
+  # Calculate intermediate matrices
+  intermediate_matrix1_h1 <- solve(solve(Omega_apr) + t(X_list_h1[[t]]) %*% as.matrix(X_list_h1[[t]]))
+  intermediate_matrix2_h1 <- solve(Omega_apr) %*% Phi_1apr + t(X_list_h1[[t]]) %*% as.matrix(Y_list_h1[[t]])
+  
+  # Calculate Psi_apt_h
+  Psi_apt_h1_t <- intermediate_matrix1_h1 %*% intermediate_matrix2_h1
+  
+  # Store the result in the list
+  Psi_apt_h1_list[[t]] <- Psi_apt_h1_t
+}
+
+
+E_yields_car <- matrix(nrow = (T - W), ncol = ncol(yields))
+rownames(E_yields_car) <- rownames(yields[(W + 1):T,])
+for (t in 1:(T - W)) {
+    E_yields_car[t , ] <- as.matrix(Psi_apt_h1_list[[t]]) %*% t(yields[(t + 107), ])
+}
+
+
+
+E_yields_car_fin <- E_yields_car[, 1:(N - 1)] # t(W+1)=jan/15 até t(T)=jul/22; h(1-1)=M1 até h(H-1)=M120
+yields_W_ini<-yields[W:(T - 1), 2:N] # t(W)=dez/14 até t(T-1)=jun/22; h(1)=M2 até h(H)=M121
+
+mat_fin.repW<-t(as.data.frame(rep(as.data.frame(Maturities[1:120])[1],(T-W))))
+mat_ini.repW<-t(as.data.frame(rep(as.data.frame(Maturities[2:121])[1],(T-W))))
+
+rf.repW<-as.data.frame(rep(as.data.frame(yields[1:(T-W),1])[1],(N-1)))
+
+E_mns.lnP_car_fin<-as.data.frame(E_yields_car_fin*mat_fin.repW)	#minus lnP
+mns.lnP_W_ini<-as.data.frame(yields_W_ini*mat_ini.repW)
+
+E_r1mo_car<- -E_mns.lnP_car_fin + mns.lnP_W_ini	#return rate for holding the bond for 1 month
+E_rxs_car<- E_r1mo_car - rf.repW      # excess returns
+
+r_xs_W <- r_xs[W:(nrow(r_xs)), ]
+
+
+MSPEcar_W <- matrix(
+  apply(rxs_rw_W - E_rxs_car[2:(nrow(r_xs_W)), ], 2, function(col) mean(col^2)),
+  nrow = 1, ncol = ncol(r_xs_W)
+)
+
+E_rxs_rw_W <- r_xs_W[1:(nrow(r_xs_W) - 1), ]
+rxs_rw_W <- r_xs[2:(nrow(r_xs_W)), ]
+MSPErw_W <- matrix(
+  apply(rxs_rw_W - E_rxs_rw_W, 2, function(col) mean(col^2)),
+  nrow = 1, ncol = ncol(rxs_rw_W)
+)
+
+E_rxs_xphyp <- 0
+MSPExphyp_W <- matrix(
+  apply(r_xs_W^2, 2, mean),
+  nrow = 1, ncol = ncol(r_xs_W)
+)
+
+
+
+
 
 
