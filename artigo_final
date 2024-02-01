@@ -561,7 +561,9 @@ View(MSPEcar_W/MSPExphyp_W)
 #==============================-----ROLLING WINDOW = 108, H=1 in whole code, ar with fixed 108 window, NO INTERCEPT------============================================================
 
 
-
+T <- nrow(yields)
+N <- ncol(yields)
+W <- 108
 
 optimal_p_values <- numeric(121)
 residual_variances_ar <- numeric(121)
@@ -570,7 +572,7 @@ intercepts_ar <- numeric(121)
 
 # Loop through each time series
 for (i in 1:121) {
-  time_series <- yields[1:108, i]
+  time_series <- yields[1:W, i]
   
   # Initialize variables to store minimum BIC and optimal p
   min_bic <- Inf
@@ -607,36 +609,63 @@ theta <- 0.00001
     }
   }
 
-T <- nrow(yields)
-N <- ncol(yields)
-W <- 108
+
 
 Y_list_h1 <- lapply(1:(T - W), function(t) yields[(t + 1):(t + W - 1), ])
 X_list_h1 <- lapply(1:(T - W), function(t) yields[(t):(t + W - 2), ])
 
-# Initialize a list to store matrices
 Psi_apt_h1_list <- vector("list", length = (T - W))
 
 Phi_1apr <- diag(0.99, N)
 
-# Perform the matrix calculations
+# Psi a posteriori
 for (t in 1:(T - W)) {
-  # Calculate intermediate matrices
   intermediate_matrix1_h1 <- solve(solve(Omega_apr) + t(X_list_h1[[t]]) %*% as.matrix(X_list_h1[[t]]))
   intermediate_matrix2_h1 <- solve(Omega_apr) %*% Phi_1apr + t(X_list_h1[[t]]) %*% as.matrix(Y_list_h1[[t]])
-  
-  # Calculate Psi_apt_h
   Psi_apt_h1_t <- intermediate_matrix1_h1 %*% intermediate_matrix2_h1
-  
-  # Store the result in the list
   Psi_apt_h1_list[[t]] <- Psi_apt_h1_t
 }
-
 
 E_yields_car <- matrix(nrow = (T - W), ncol = ncol(yields))
 rownames(E_yields_car) <- rownames(yields[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields_car[t , ] <- as.matrix(Psi_apt_h1_list[[t]]) %*% t(yields[(t + 107), ])
+    E_yields_car[t , ] <- as.matrix(Psi_apt_h1_list[[t]]) %*% t(yields[(t + W - 1), ])
+}
+
+yields_T0 <- yields[(W + 1):T,]
+
+MSFE_car <- numeric(ncol(E_yields_car))
+for (i in 1:ncol(E_yields_car)) {
+  MSFE_car[i] <- (sum(E_yields_car[,i] - yields_T0[,i])^2)/(T - W)
+}
+
+E_yields_rw <- yields[(W):(T - 1),]
+rownames(E_yields_rw) <- rownames(yields[(W + 1):T,])
+
+MSFE_rw <- matrix(nrow = 1, ncol = ncol(E_yields_car))
+for (i in 1:ncol(E_yields_car)) {
+    MSFE_rw[,i] <- (sum(E_yields_rw[,i] - yields_T0[,i])^2)/(T - W)
+}
+
+# VAR
+Psi_VAR_h1_list <- vector("list", length = (T - W))
+
+for (t in 1:(T - W)) {
+  intermediate_matrix1_h1 <- solve(t(X_list_h1[[t]]) %*% as.matrix(X_list_h1[[t]]))
+  intermediate_matrix2_h1 <- t(X_list_h1[[t]]) %*% as.matrix(Y_list_h1[[t]])
+  Psi_VAR_h1_t <- intermediate_matrix1_h1 %*% intermediate_matrix2_h1
+  Psi_VAR_h1_list[[t]] <- Psi_VAR_h1_t
+}
+
+E_yields_VAR <- matrix(nrow = (T - W), ncol = ncol(yields))
+rownames(E_yields_VAR) <- rownames(yields[(W + 1):T,])
+for (t in 1:(T - W)) {
+    E_yields_VAR[t , ] <- as.matrix(Psi_VAR_h1_list[[t]]) %*% t(yields[(t + W - 1), ])
+}
+
+MSFE_VAR <- numeric(ncol(E_yields_car))
+for (i in 1:ncol(E_yields_car)) {
+  MSFE_VAR[i] <- (sum(E_yields_VAR[,i] - yields_T0[,i])^2)/(T - W)
 }
 
 
@@ -670,7 +699,7 @@ MSPErw_W <- matrix(
   nrow = 1, ncol = ncol(rxs_rw_W)
 )
 
-E_rxs_xphyp <- 0
+E_rxs_xphyp <- matrix(0,
 MSPExphyp_W <- matrix(
   apply(r_xs_W^2, 2, mean),
   nrow = 1, ncol = ncol(r_xs_W)
@@ -678,6 +707,114 @@ MSPExphyp_W <- matrix(
 
 
 
+
+
+#==============================-----FIXED WINDOW = W, H=1 in whole code, NO INTERCEPT, n=3 ------============================================================
+
+
+T <- nrow(yields)
+N <- ncol(yields)
+W <- 108
+
+optimal_p_values <- numeric(121)
+residual_variances_ar <- numeric(121)
+intercepts_ar <- numeric(121)
+
+
+# Loop through each time series
+for (i in 1:121) {
+  time_series <- yields[1:W, i]
+  
+  # Initialize variables to store minimum BIC and optimal p
+  min_bic <- Inf
+  optimal_p <- 0
+  
+  # Try AR models with different values of p
+  for (p in 1:10) {  # You can adjust the range of p as needed
+    arima_model <- arima(time_series, order = c(p, 0, 0))
+    bic <- AIC(arima_model, k = log(length(time_series)))
+    
+    # Update optimal p if current model has lower BIC
+    if (bic < min_bic) {
+      min_bic <- bic
+      optimal_p <- p
+    }
+  }
+  
+  final_arima_model <- arima(time_series, order = c(optimal_p, 0, 0))
+  residual_variances_ar[i] <- var(resid(final_arima_model))
+  intercepts_ar[i] <- final_arima_model$coef[1]  # 1 corresponds to the intercept coefficient
+  optimal_p_values[i] <- optimal_p
+}
+
+theta <- 0.00001
+
+  Omega_apr <- matrix( nrow = length(residual_variances_ar), ncol = length(residual_variances_ar))
+  for (i in 1:length(residual_variances_ar)) {
+    for (j in 1:length(residual_variances_ar)) {
+      if (i != j) {
+        Omega_apr[i, j] <- theta * residual_variances_ar[i] / residual_variances_ar[j]
+      } else {
+        Omega_apr[i, j] <- residual_variances_ar[i]  # Keep diagonal elements unchanged
+      }
+    }
+  }
+
+X_W_h1 <-  yields[(1):(W - 1), ]
+Y_W_h1 <-  yields[(2):(W), ]
+
+Phi_1apr <- diag(0.99, N)
+
+# Psi a posteriori
+Psi_apt_h1 <- matrix(nrow = N, ncol = N)
+for (t in 1:(T - W)) {
+  intermediate_matrix1_h1 <- solve(solve(Omega_apr) + t(X_list_h1[[t]]) %*% as.matrix(X_list_h1[[t]]))
+  intermediate_matrix2_h1 <- solve(Omega_apr) %*% Phi_1apr + t(X_list_h1[[t]]) %*% as.matrix(Y_list_h1[[t]])
+  Psi_apt_h1_t <- intermediate_matrix1_h1 %*% intermediate_matrix2_h1
+  Psi_apt_h1_list[[t]] <- Psi_apt_h1_t
+}
+
+E_yields_car <- matrix(nrow = (T - W), ncol = ncol(yields))
+rownames(E_yields_car) <- rownames(yields[(W + 1):T,])
+for (t in 1:(T - W)) {
+    E_yields_car[t , ] <- as.matrix(Psi_apt_h1_list[[t]]) %*% t(yields[(t + W - 1), ])
+}
+
+yields_T0 <- yields[(W + 1):T,]
+
+MSFE_car <- numeric(ncol(E_yields_car))
+for (i in 1:ncol(E_yields_car)) {
+  MSFE_car[i] <- (sum(E_yields_car[,i] - yields_T0[,i])^2)/(T - W)
+}
+
+E_yields_rw <- yields[(W):(T - 1),]
+rownames(E_yields_rw) <- rownames(yields[(W + 1):T,])
+
+MSFE_rw <- matrix(nrow = 1, ncol = ncol(E_yields_car))
+for (i in 1:ncol(E_yields_car)) {
+    MSFE_rw[,i] <- (sum(E_yields_rw[,i] - yields_T0[,i])^2)/(T - W)
+}
+
+# VAR
+Psi_VAR_h1_list <- vector("list", length = (T - W))
+
+for (i in 1:N) {
+  XtXinv <- solve(t(X_W_h1[,i]) %*% as.matrix(X_W_h1[,i]))
+  XtY <- t(X_W_h1[,i]) %*% as.matrix(Y_W_h1[,i])
+  Psi_VAR_h1_n <- XtXinv %*% XtY
+  Psi_VAR_h1_list[[t]] <- Psi_VAR_h1_t
+}
+
+E_yields_VAR <- matrix(nrow = (T - W), ncol = ncol(yields))
+rownames(E_yields_VAR) <- rownames(yields[(W + 1):T,])
+for (t in 1:(T - W)) {
+    E_yields_VAR[t , ] <- as.matrix(Psi_VAR_h1_list[[t]]) %*% t(yields[(t + W - 1), ])
+}
+
+MSFE_VAR <- numeric(ncol(E_yields_car))
+for (i in 1:ncol(E_yields_car)) {
+  MSFE_VAR[i] <- (sum(E_yields_VAR[,i] - yields_T0[,i])^2)/(T - W)
+}
 
 
 
