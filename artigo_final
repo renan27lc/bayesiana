@@ -711,82 +711,77 @@ MSPExphyp_W <- matrix(
 
 #==============================-----FIXED WINDOW = W, H=1 in whole code, NO INTERCEPT, n=3 ------============================================================
 
-
 T <- nrow(yields)
 N <- ncol(yields)
 W <- 108
 theta_ij <- 0.00001
 theta_ii <- 0.001
 
-optimal_p_values <- numeric(121)
+#----1) matrix Psi.prior = [Phi_0.prior Phi_1.prior]'
+
+#----1.1) matrix Phi_0.prior
+
+ar6 <- arima(yields[1:W, i], order = c(6, 0, 0))
+
+Phi_0.prior <- numeric(N)
+Phi_0.prior <- ar6$coef[1] #intercepts
+
+#----1.2) matrix Phi_1.prior
+
+Phi_1.prior <- diag(0.99, N)
+
+Psi.prior <- cbind(Phi_0.prior, Phi_1.prior)
+
+
+#----2) matrix Omega.prior
+
 residual_variances_ar <- numeric(121)
-intercepts_ar <- numeric(121)
+residual_variances_ar[i] <- var(resid(ar6))
 
-
-# Loop through each time series
-for (i in 1:121) {
-  time_series <- yields[1:W, i]
-  
-  # Initialize variables to store minimum BIC and optimal p
-  min_bic <- Inf
-  optimal_p <- 0
-  
-  # Try AR models with different values of p
-  for (p in 1:10) {  # You can adjust the range of p as needed
-    arima_model <- arima(time_series, order = c(p, 0, 0))
-    bic <- AIC(arima_model, k = log(length(time_series)))
-    
-    # Update optimal p if current model has lower BIC
-    if (bic < min_bic) {
-      min_bic <- bic
-      optimal_p <- p
-    }
-  }
-  
-  final_arima_model <- arima(time_series, order = c(optimal_p, 0, 0))
-  residual_variances_ar[i] <- var(resid(final_arima_model))
-  intercepts_ar[i] <- final_arima_model$coef[1]  # 1 corresponds to the intercept coefficient
-  optimal_p_values[i] <- optimal_p
-}
-
-
-  Omega_apr <- matrix( nrow = length(residual_variances_ar), ncol = length(residual_variances_ar))
-  for (i in 1:length(residual_variances_ar)) {
-    for (j in 1:length(residual_variances_ar)) {
+  Omega.prior <- matrix( nrow = N, ncol = N)
+  for (i in 1:N) {
+    for (j in 1:N) {
       if (i != j) {
-        Omega_apr[i, j] <- theta_ij * residual_variances_ar[i] / residual_variances_ar[j]
+        Omega.prior[i, j] <- theta_ij * residual_variances_ar[i] / residual_variances_ar[j]
       } else {
-        Omega_apr[i, j] <- theta_ii *residual_variances_ar[i]
+        Omega.prior[i, j] <- theta_ii
       }
     }
   }
 
-X_W_h1 <-  yields[(1):(W - 1), ]
-Y_W_h1 <-  yields[(2):(W), ]
+Sigma <- diag(residual_variances_ar)
 
-matrixof1s <- matrix( 1, ncol = 1, nrow = nrow(X_W_h1))
+#----3) matrices X and Y
 
-X_W_h1_intercept <- cbind(matrixof1s,X_W_h1)
+Y <-  yields[2:W, ]
 
-Phi_1apr <- diag(0.99, N)
-Psi_1apr <- cbind(residual_variances_ar,Phi_1apr)
+Y_ <-  yields[1:(W - 1), ]
+X_intercept <- matrix(1, ncol = 1, nrow = (W-1))
+X <- cbind(X_intercept,Y_)
 
 
-# Psi a posteriori
-Psi_apt_h1 <- solve(solve(Omega_apr) + t(X_W_h1_intercept) %*% as.matrix(X_W_h1_intercept)) %*% (solve(Omega_apr) %*% Psi_1apr + t(X_W_h1_intercept) %*% as.matrix(Y_W_h1))
+#----4) Psi.posterior
 
-E_yields_car <- matrix(nrow = (T - W), ncol = ncol(yields))
+Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) %*% Psi.prior + t(X) %*% (Y))
+
+#----5) BVAR estimation
+
+E_yields_car <- matrix(nrow = (T - W), ncol = N)
 rownames(E_yields_car) <- rownames(yields[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields_car[t , ] <- as.matrix(yields[(t + W - 1), ]) %*%  Psi_apt_h1
+    E_yields_car[t , ] <- as.matrix(yields[(t + W - 1), ]) %*%  Psi.posterior
 }
+
+#----6) MSFE Carriero
 
 yields_T0 <- yields[(W + 1):T,]
 
-MSFE_car <- numeric(ncol(E_yields_car))
-for (i in 1:ncol(E_yields_car)) {
+MSFE_car <- numeric(N)
+for (i in 1:N) {
   MSFE_car[i] <- (sum(E_yields_car[,i] - yields_T0[,i])^2)/(T - W)
 }
+
+#----7) MSFE Random Walk
 
 E_yields_rw <- yields[(W):(T - 1),]
 rownames(E_yields_rw) <- rownames(yields[(W + 1):T,])
@@ -796,8 +791,12 @@ for (i in 1:ncol(E_yields_car)) {
     MSFE_rw[,i] <- (sum(E_yields_rw[,i] - yields_T0[,i])^2)/(T - W)
 }
 
-# VAR
+#----8) MSFE AR
 
+
+
+
+#----9) MSFE VAR
 
 Psi_VAR_h1 <- solve(t(X_W_h1_intercept[,1:12]) %*% as.matrix(X_W_h1_intercept[,1:12])) %*% ( t(X_W_h1_intercept[,1:12]) %*% as.matrix(Y_W_h1[,1:12]))
 
