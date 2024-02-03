@@ -717,11 +717,13 @@ W <- 108
 theta_ij <- 0.00001
 theta_ii <- 0.001
 
+#_____________________________________________________________________
 #----1) matrix Psi.prior = [Phi_0.prior Phi_1.prior]'
+#_____________________________________________________________________
 
 #----1.1) matrix Phi_0.prior
 
-ar6 <- arima(yields[1:W, i], order = c(6, 0, 0))
+ar6 <- arima(yields[1:W, i], order = c(6, 0, 0)) #NOT WORKING WELL!!!!! RESIDUAL VARIANCES ARE WEIRD
 
 Phi_0.prior <- numeric(N)
 Phi_0.prior <- ar6$coef[1] #intercepts
@@ -732,8 +734,9 @@ Phi_1.prior <- diag(0.99, N)
 
 Psi.prior <- cbind(Phi_0.prior, Phi_1.prior)
 
-
+#_____________________________________________________________________
 #----2) matrix Omega.prior
+#_____________________________________________________________________
 
 residual_variances_ar <- numeric(121)
 residual_variances_ar[i] <- var(resid(ar6))
@@ -749,22 +752,25 @@ residual_variances_ar[i] <- var(resid(ar6))
     }
   }
 
-Sigma <- diag(residual_variances_ar)
 
+
+
+
+#_____________________________________________________________________
 #----3) matrices X and Y
+#_____________________________________________________________________
 
 Y <-  yields[2:W, ]
 
 Y_ <-  yields[1:(W - 1), ]
 X_intercept <- matrix(1, ncol = 1, nrow = (W-1))
-X <- cbind(X_intercept,Y_)
+X <- as.matrix(cbind(X_intercept,Y_))
 
+#_____________________________________________________________________
+#----4) Psi.posterior and BVAR estimation
+#_____________________________________________________________________
 
-#----4) Psi.posterior
-
-Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) %*% Psi.prior + t(X) %*% (Y))
-
-#----5) BVAR estimation
+Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
 
 E_yields_car <- matrix(nrow = (T - W), ncol = N)
 rownames(E_yields_car) <- rownames(yields[(W + 1):T,])
@@ -772,7 +778,9 @@ for (t in 1:(T - W)) {
     E_yields_car[t , ] <- as.matrix(yields[(t + W - 1), ]) %*%  Psi.posterior
 }
 
-#----6) MSFE Carriero
+#_____________________________________________________________________
+#----5) MSFE Carriero
+#_____________________________________________________________________
 
 yields_T0 <- yields[(W + 1):T,]
 
@@ -781,7 +789,9 @@ for (i in 1:N) {
   MSFE_car[i] <- (sum(E_yields_car[,i] - yields_T0[,i])^2)/(T - W)
 }
 
-#----7) MSFE Random Walk
+#_____________________________________________________________________
+#----6) MSFE Random Walk
+#_____________________________________________________________________
 
 E_yields_rw <- yields[(W):(T - 1),]
 rownames(E_yields_rw) <- rownames(yields[(W + 1):T,])
@@ -791,12 +801,14 @@ for (i in 1:ncol(E_yields_car)) {
     MSFE_rw[,i] <- (sum(E_yields_rw[,i] - yields_T0[,i])^2)/(T - W)
 }
 
-#----8) MSFE AR
+#_____________________________________________________________________
+#----7) MSFE AR
+#_____________________________________________________________________
 
 
-
-
-#----9) MSFE VAR
+#_____________________________________________________________________
+#----8) MSFE VAR
+#_____________________________________________________________________
 
 Psi_VAR_h1 <- solve(t(X_W_h1_intercept[,1:12]) %*% as.matrix(X_W_h1_intercept[,1:12])) %*% ( t(X_W_h1_intercept[,1:12]) %*% as.matrix(Y_W_h1[,1:12]))
 
@@ -820,6 +832,38 @@ MSFE_VAR <- numeric(ncol(E_yields_car))
 for (i in 1:ncol(E_yields_car)) {
   MSFE_VAR[i] <- (sum(E_yields_VAR[,i] - yields_T0[,i])^2)/(T - W)
 }
+
+
+
+
+
+
+
+
+#====================== CALCULATING THETA
+
+database_size <- length(as.matrix(yields[1:W,]))
+
+Sigma <- diag(residual_variances_ar)
+nu.prior <- database_size/10000  # arbitrary choice of nu
+S.prior <- Sigma * (nu.prior - N - 1)
+View(S)
+
+Var_Psi.apr <- kronecker(Sigma, Omega.prior)
+
+install.packages("VGAM")
+library(VGAM)
+
+Gamma_nu <- multigamma(N, nu/2)
+Gamma_nuN <- multigamma(N, (nu+database_size)/2)
+
+((det(Var_Psi.apr))^((nu.prior - W + database_size*N)/2) * Gamma_nuN) / ((pi())^(database_size*N*W)
+
+  
+
+
+
+
 
 
 
