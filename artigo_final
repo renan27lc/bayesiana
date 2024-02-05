@@ -711,7 +711,7 @@ MSPExphyp_W <- matrix(
 
 #==============================-----FIXED WINDOW = W, H=1 in whole code, NO INTERCEPT, n=3 ------============================================================
 
-yields12M <- yields[,1:12]*100
+yields12M <- yields[,1:12] #*100
 T <- nrow(yields12M)
 N <- ncol(yields12M)
 W <- 108
@@ -737,7 +737,7 @@ Phi_0.prior <- intercepts_ar
 
 Phi_1.prior <- diag(0.99, N)
 
-Psi.prior <- cbind(Phi_0.prior, Phi_1.prior)
+Psi.prior <- t(cbind(Phi_0.prior, Phi_1.prior))
 
 #_____________________________________________________________________
 #----2) matrix Omega.prior
@@ -835,11 +835,10 @@ for (i in 1:ncol(E_yields12M_car)) {
 
 
 
+#_____________________________________________________________________
+#----9) THETA
+#_____________________________________________________________________
 
-
-
-
-#====================== CALCULATING THETA
 
 grid_theta_ij <- c(2e-16, 4e-16, 6e-16, 8e-16, 1e-15, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10)
 
