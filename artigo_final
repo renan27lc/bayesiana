@@ -711,8 +711,10 @@ MSPExphyp_W <- matrix(
 
 #==============================-----FIXED WINDOW = W, H=1 in whole code, NO INTERCEPT, n=3 ------============================================================
 
-T <- nrow(yields)
-N <- ncol(yields)
+yields12M <- yields12M[,1:12]
+
+T <- nrow(yields12M)
+N <- ncol(yields12M)
 W <- 108
 theta_ij <- 0.00001
 theta_ii <- 0.001
@@ -723,7 +725,7 @@ theta_ii <- 0.001
 
 #----1.1) matrix Phi_0.prior
 
-ar6 <- arima(yields[1:W, i], order = c(6, 0, 0)) #NOT WORKING WELL!!!!! RESIDUAL VARIANCES ARE WEIRD
+ar6 <- arima(yields12M[1:W, i], order = c(6, 0, 0)) #NOT WORKING WELL!!!!! RESIDUAL VARIANCES ARE WEIRD
 
 Phi_0.prior <- numeric(N)
 Phi_0.prior <- ar6$coef[1] #intercepts
@@ -760,9 +762,9 @@ residual_variances_ar[i] <- var(resid(ar6))
 #----3) matrices X and Y
 #_____________________________________________________________________
 
-Y <-  yields[2:W, ]
+Y <-  yields12M[2:W, ]
 
-Y_ <-  yields[1:(W - 1), ]
+Y_ <-  yields12M[1:(W - 1), ]
 X_intercept <- matrix(1, ncol = 1, nrow = (W-1))
 X <- as.matrix(cbind(X_intercept,Y_))
 
@@ -772,33 +774,33 @@ X <- as.matrix(cbind(X_intercept,Y_))
 
 Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
 
-E_yields_car <- matrix(nrow = (T - W), ncol = N)
-rownames(E_yields_car) <- rownames(yields[(W + 1):T,])
+E_yields12M_car <- matrix(nrow = (T - W), ncol = N)
+rownames(E_yields12M_car) <- rownames(yields12M[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields_car[t , ] <- as.matrix(yields[(t + W - 1), ]) %*%  Psi.posterior
+    E_yields12M_car[t , ] <- as.matrix(yields12M[(t + W - 1), ]) %*%  Psi.posterior
 }
 
 #_____________________________________________________________________
 #----5) MSFE Carriero
 #_____________________________________________________________________
 
-yields_T0 <- yields[(W + 1):T,]
+yields12M_T0 <- yields12M[(W + 1):T,]
 
 MSFE_car <- numeric(N)
 for (i in 1:N) {
-  MSFE_car[i] <- (sum(E_yields_car[,i] - yields_T0[,i])^2)/(T - W)
+  MSFE_car[i] <- (sum(E_yields12M_car[,i] - yields12M_T0[,i])^2)/(T - W)
 }
 
 #_____________________________________________________________________
 #----6) MSFE Random Walk
 #_____________________________________________________________________
 
-E_yields_rw <- yields[(W):(T - 1),]
-rownames(E_yields_rw) <- rownames(yields[(W + 1):T,])
+E_yields12M_rw <- yields12M[(W):(T - 1),]
+rownames(E_yields12M_rw) <- rownames(yields12M[(W + 1):T,])
 
-MSFE_rw <- matrix(nrow = 1, ncol = ncol(E_yields_car))
-for (i in 1:ncol(E_yields_car)) {
-    MSFE_rw[,i] <- (sum(E_yields_rw[,i] - yields_T0[,i])^2)/(T - W)
+MSFE_rw <- matrix(nrow = 1, ncol = ncol(E_yields12M_car))
+for (i in 1:ncol(E_yields12M_car)) {
+    MSFE_rw[,i] <- (sum(E_yields12M_rw[,i] - yields12M_T0[,i])^2)/(T - W)
 }
 
 #_____________________________________________________________________
@@ -822,15 +824,15 @@ for (i in 1:N) {
   Psi_VAR_h1_list[[t]] <- Psi_VAR_h1_t
 }
 
-E_yields_VAR <- matrix(nrow = (T - W), ncol = ncol(yields))
-rownames(E_yields_VAR) <- rownames(yields[(W + 1):T,])
+E_yields12M_VAR <- matrix(nrow = (T - W), ncol = ncol(yields12M))
+rownames(E_yields12M_VAR) <- rownames(yields12M[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields_VAR[t , ] <- as.matrix(Psi_VAR_h1_list[[t]]) %*% t(yields[(t + W - 1), ])
+    E_yields12M_VAR[t , ] <- as.matrix(Psi_VAR_h1_list[[t]]) %*% t(yields12M[(t + W - 1), ])
 }
 
-MSFE_VAR <- numeric(ncol(E_yields_car))
-for (i in 1:ncol(E_yields_car)) {
-  MSFE_VAR[i] <- (sum(E_yields_VAR[,i] - yields_T0[,i])^2)/(T - W)
+MSFE_VAR <- numeric(ncol(E_yields12M_car))
+for (i in 1:ncol(E_yields12M_car)) {
+  MSFE_VAR[i] <- (sum(E_yields12M_VAR[,i] - yields12M_T0[,i])^2)/(T - W)
 }
 
 
@@ -842,7 +844,7 @@ for (i in 1:ncol(E_yields_car)) {
 
 #====================== CALCULATING THETA
 
-database_size <- length(as.matrix(yields[1:W,]))
+database_size <- length(as.matrix(yields12M[1:W,]))
 
 Sigma <- diag(residual_variances_ar)
 nu.prior <- database_size/10000  # arbitrary choice of nu
