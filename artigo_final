@@ -711,26 +711,29 @@ MSPExphyp_W <- matrix(
 
 #==============================-----FIXED WINDOW = W, H=1 in whole code, NO INTERCEPT, n=3 ------============================================================
 
-yields12M <- yields12M[,1:12]
-
+yields12M <- yields[,1:12]*100
 T <- nrow(yields12M)
 N <- ncol(yields12M)
 W <- 108
 theta_ij <- 0.00001
 theta_ii <- 0.001
 
+
+residual_variances_ar <- numeric(N)
+intercepts_ar <- numeric(N)
+
+for (i in 1:N) {
+  time_series <- yields12M[, i]
+  ar6 <- arima(time_series, order = c(6, 0, 0))
+  residual_variances_ar[i] <- var(resid(ar6))
+  intercepts_ar[i] <- ar6$coef[1]
+}
+
 #_____________________________________________________________________
 #----1) matrix Psi.prior = [Phi_0.prior Phi_1.prior]'
 #_____________________________________________________________________
 
-#----1.1) matrix Phi_0.prior
-
-ar6 <- arima(yields12M[1:W, i], order = c(6, 0, 0)) #NOT WORKING WELL!!!!! RESIDUAL VARIANCES ARE WEIRD
-
-Phi_0.prior <- numeric(N)
-Phi_0.prior <- ar6$coef[1] #intercepts
-
-#----1.2) matrix Phi_1.prior
+Phi_0.prior <- intercepts_ar
 
 Phi_1.prior <- diag(0.99, N)
 
@@ -740,8 +743,6 @@ Psi.prior <- cbind(Phi_0.prior, Phi_1.prior)
 #----2) matrix Omega.prior
 #_____________________________________________________________________
 
-residual_variances_ar <- numeric(121)
-residual_variances_ar[i] <- var(resid(ar6))
 
   Omega.prior <- matrix( nrow = N, ncol = N)
   for (i in 1:N) {
@@ -753,10 +754,6 @@ residual_variances_ar[i] <- var(resid(ar6))
       }
     }
   }
-
-
-
-
 
 #_____________________________________________________________________
 #----3) matrices X and Y
@@ -844,27 +841,44 @@ for (i in 1:ncol(E_yields12M_car)) {
 
 #====================== CALCULATING THETA
 
+grid_theta_ij <- c(2e-16, 4e-16, 6e-16, 8e-16, 1e-15, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10)
+
+#theta_ij <- 1000
+
+  Omega.prior <- matrix( nrow = N, ncol = N)
+  for (i in 1:N) {
+    for (j in 1:N) {
+      if (i != j) {
+        Omega.prior[i, j] <- theta_ij * residual_variances_ar[i] / residual_variances_ar[j]
+      } else {
+        Omega.prior[i, j] <- theta_ii
+      }
+    }
+  }
+
 database_size <- length(as.matrix(yields12M[1:W,]))
 
 Sigma <- diag(residual_variances_ar)
 nu.prior <- database_size/10000  # arbitrary choice of nu
 S.prior <- Sigma * (nu.prior - N - 1)
-View(S)
 
-Var_Psi.apr <- kronecker(Sigma, Omega.prior)
+Var_Psi.prior <- kronecker(Sigma, Omega.prior)
 
-install.packages("VGAM")
-library(VGAM)
+multivariate_gamma <- function(p, nu) {
+  term <- pi^(p*(p-1)/4)
+  product <- prod(gamma((nu + 1 - seq_len(p))/2))
+  result <- term * product
+  return(result)
+}
 
-Gamma_nu <- multigamma(N, nu/2)
-Gamma_nuN <- multigamma(N, (nu+database_size)/2)
+Gamma_nu <- multivariate_gamma(N, nu.prior/2)
+Gamma_nuN <- multivariate_gamma(N, (nu.prior + database_size)/2)
 
-((det(Var_Psi.apr))^((nu.prior - W + database_size*N)/2) * Gamma_nuN) / ((pi())^(database_size*N*W)
+mg_lh_simple <- (det(Sigma)^(nu.prior/2) * Gamma_nuN/2) / ((pi)^(database_size*N/2) * Gamma_nu * (det(Sigma + S.prior))^((nu.prior + database_size)/2))
 
-  
+#mg_lh <- (det(Var_Psi.prior)^((nu.prior - W + database_size*N)/2) * Gamma_nuN/2) / ((pi)^(database_size*N*W/2) * Gamma_nu * (det(Var_Psi.prior + S.prior))^((nu.prior + database_size)/2))
 
-
-
+mg_lh_simple
 
 
 
