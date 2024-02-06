@@ -1,4 +1,4 @@
-#==============================-----FIXED WINDOW = W, H=1 in whole code, NO INTERCEPT, n=3 ------============================================================
+#==============================----- FIXED WINDOW = W, H=1 in whole code, NO INTERCEPT, n=3 ------============================================================
 
 N <- 12
 T <- nrow(yields)
@@ -32,6 +32,7 @@ Psi.prior <- t(cbind(Phi_0.prior, Phi_1.prior))
 #----2) matrix Omega.prior
 #_____________________________________________________________________
 
+theta <- 0.0001
 
   Omega.prior <- matrix( nrow = N, ncol = N)
   for (i in 1:N) {
