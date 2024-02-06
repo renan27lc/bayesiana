@@ -773,6 +773,9 @@ Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) 
 # Omega.prior_22x22 <- as.matrix(rbind(matrix(1, ncol = 13, nrow = 1),cbind(matrix(1, ncol = 1, nrow = 12), Omega.prior)))
 # Psi.posterior <- solve(solve(Omega.prior_22x22) + t(X) %*% X) %*% (solve(Omega.prior_22x22) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
 
+Phi_0.posterior <- as.matrix(t(Psi.posterior)[,1])
+Phi_1.posterior <- as.matrix(t(Psi.posterior)[,2:nrow(Psi.posterior)])
+
 TmWof1s <- matrix(1, ncol = 1, nrow = (T - W))
 X_forecast <- as.matrix(cbind(TmWof1s, yields12M[(T + W - 1), ]))
 
