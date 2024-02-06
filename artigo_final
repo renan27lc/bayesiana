@@ -2,7 +2,7 @@ optimal_p_values <- numeric(121)
 residual_variances_ar <- numeric(121)
 intercepts_ar <- numeric(121)
 
-# Loop through each time series
+# Loop through each time series 
 for (i in 1:121) {
   time_series <- yields[, i]
   
