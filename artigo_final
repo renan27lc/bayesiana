@@ -759,7 +759,7 @@ Psi.prior <- t(cbind(Phi_0.prior, Phi_1.prior))
 #----3) matrices X and Y
 #_____________________________________________________________________
 
-Y <-  yields12M[2:W, ]
+Y <-  as.matrix(yields12M[2:W, ])
 
 Y_ <-  yields12M[1:(W - 1), ]
 X_intercept <- matrix(1, ncol = 1, nrow = (W-1))
@@ -770,13 +770,19 @@ X <- as.matrix(cbind(X_intercept,Y_))
 #_____________________________________________________________________
 
 Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
+# Omega.prior_22x22 <- as.matrix(rbind(matrix(1, ncol = 13, nrow = 1),cbind(matrix(1, ncol = 1, nrow = 12), Omega.prior)))
+# Psi.posterior <- solve(solve(Omega.prior_22x22) + t(X) %*% X) %*% (solve(Omega.prior_22x22) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
+
+TmWof1s <- matrix(1, ncol = 1, nrow = (T - W))
+X_forecast <- as.matrix(cbind(TmWof1s, yields12M[(t + W - 1), ]))
 
 E_yields12M_car <- matrix(nrow = (T - W), ncol = N)
 rownames(E_yields12M_car) <- rownames(yields12M[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields12M_car[t , ] <- as.matrix(yields12M[(t + W - 1), ]) %*%  Psi.posterior
+    E_yields12M_car[t, ] <- X_forecast %*%  Psi.posterior
 }
-
+X_intercept <- matrix(1, ncol = 1, nrow = (W-1))
+X <- as.matrix(cbind(matrix(1, ncol = 1, nrow = (W-1)),Y_))
 #_____________________________________________________________________
 #----5) MSFE Carriero
 #_____________________________________________________________________
