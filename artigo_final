@@ -711,9 +711,9 @@ MSPExphyp_W <- matrix(
 
 #==============================-----FIXED WINDOW = W, H=1 in whole code, NO INTERCEPT, n=3 ------============================================================
 
-yields12M <- yields[,1:12] #*100
-T <- nrow(yields12M)
-N <- ncol(yields12M)
+N <- 12
+T <- nrow(yields)
+yields12M <- yields[,1:N] #*100
 W <- 108
 theta_ij <- 0.00001
 theta_ii <- 0.001
@@ -774,15 +774,18 @@ Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) 
 # Psi.posterior <- solve(solve(Omega.prior_22x22) + t(X) %*% X) %*% (solve(Omega.prior_22x22) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
 
 TmWof1s <- matrix(1, ncol = 1, nrow = (T - W))
-X_forecast <- as.matrix(cbind(TmWof1s, yields12M[(t + W - 1), ]))
+X_forecast <- as.matrix(cbind(TmWof1s, yields12M[(T + W - 1), ]))
+
+#E_yields12M_car <- matrix(nrow = (T - W), ncol = N)
+rownames(E_yields12M_car) <- rownames(yields12M[(W + 1):T,])
+    E_yields12M_car <- X_forecast %*%  Psi.posterior
 
 E_yields12M_car <- matrix(nrow = (T - W), ncol = N)
 rownames(E_yields12M_car) <- rownames(yields12M[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields12M_car[t, ] <- X_forecast %*%  Psi.posterior
+    E_yields_car[t , ] <- as.matrix(Psi.posterior) %*% t(yields[(t + W - 1), ])
 }
-X_intercept <- matrix(1, ncol = 1, nrow = (W-1))
-X <- as.matrix(cbind(matrix(1, ncol = 1, nrow = (W-1)),Y_))
+
 #_____________________________________________________________________
 #----5) MSFE Carriero
 #_____________________________________________________________________
