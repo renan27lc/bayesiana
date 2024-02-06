@@ -800,14 +800,28 @@ for (i in 1:N) {
 E_yields12M_rw <- yields12M[(W):(T - 1),]
 rownames(E_yields12M_rw) <- rownames(yields12M[(W + 1):T,])
 
-MSFE_rw <- matrix(nrow = 1, ncol = ncol(E_yields12M_car))
-for (i in 1:ncol(E_yields12M_car)) {
+MSFE_rw <- matrix(nrow = 1, ncol = ncol(E_yields12M_rw))
+for (i in 1:ncol(E_yields12M_rw)) {
     MSFE_rw[,i] <- (sum(E_yields12M_rw[,i] - yields12M_T0[,i])^2)/(T - W)
 }
+
+FE_rw <- E_yields12M_rw - yields12M_T0
+MSFE_rw[i] <- as.matrix(sum((FE_rw[,i])^2))
+MSFE_rw <- as.matrix(MSFE_rw)
 
 #_____________________________________________________________________
 #----7) MSFE AR
 #_____________________________________________________________________
+
+residual_variances_ar <- numeric(N)
+intercepts_ar <- numeric(N)
+
+for (i in 1:N) {
+  time_series <- yields12M[, i]
+  ar6 <- arima(time_series, order = c(6, 0, 0))
+  residual_variances_ar[i] <- var(resid(ar6))
+  intercepts_ar[i] <- ar6$coef[1]
+}
 
 
 #_____________________________________________________________________
@@ -825,12 +839,16 @@ for (t in 1:(T - W)) {
     E_yields12M_VAR[t , ] <- Phi_0.VAR + Phi_1.VAR %*% t(yields12M[(t + W - 1), ])
 }
 
-MSFE_VAR <- numeric(ncol(E_yields12M_car))
-for (i in 1:ncol(E_yields12M_car)) {
+MSFE_VAR <- matrix(nrow = 1, ncol = ncol(E_yields12M_VAR))
+for (i in 1:ncol(E_yields12M_VAR)) {
   MSFE_VAR[i] <- (sum(E_yields12M_VAR[,i] - yields12M_T0[,i])^2)/(T - W)
 }
 
+FE_VAR <- E_yields12M_VAR - yields12M_T0
+MSFE_VAR[i] <- as.matrix(sum((FE_VAR[,i])^2))
+MSFE_VAR <- as.matrix(MSFE_VAR)
 
+#var_model <- VAR(yields12M[1:W, ], p = 1)
 
 
 #_____________________________________________________________________
