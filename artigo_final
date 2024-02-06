@@ -776,17 +776,10 @@ Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) 
 Phi_0.posterior <- as.matrix(t(Psi.posterior)[,1])
 Phi_1.posterior <- as.matrix(t(Psi.posterior)[,2:nrow(Psi.posterior)])
 
-TmWof1s <- matrix(1, ncol = 1, nrow = (T - W))
-X_forecast <- as.matrix(cbind(TmWof1s, yields12M[(T + W - 1), ]))
-
-#E_yields12M_car <- matrix(nrow = (T - W), ncol = N)
-rownames(E_yields12M_car) <- rownames(yields12M[(W + 1):T,])
-    E_yields12M_car <- X_forecast %*%  Psi.posterior
-
 E_yields12M_car <- matrix(nrow = (T - W), ncol = N)
 rownames(E_yields12M_car) <- rownames(yields12M[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields_car[t , ] <- as.matrix(Psi.posterior) %*% t(yields[(t + W - 1), ])
+    E_yields12M_car[t , ] <- Phi_0.posterior + Phi_1.posterior %*% t(yields12M[(t + W - 1), ])
 }
 
 #_____________________________________________________________________
@@ -821,22 +814,15 @@ for (i in 1:ncol(E_yields12M_car)) {
 #----8) MSFE VAR
 #_____________________________________________________________________
 
-Psi_VAR_h1 <- solve(t(X_W_h1_intercept[,1:12]) %*% as.matrix(X_W_h1_intercept[,1:12])) %*% ( t(X_W_h1_intercept[,1:12]) %*% as.matrix(Y_W_h1[,1:12]))
+Psi.VAR <- solve(t(X) %*% X) %*% (t(X) %*% (Y))
 
-
-Psi_VAR_h1_list <- vector("list", length = (T - W))
-
-for (i in 1:N) {
-  XtXinv <- solve(t(X_W_h1[,i]) %*% as.matrix(X_W_h1[,i]))
-  XtY <- t(X_W_h1[,i]) %*% as.matrix(Y_W_h1[,i])
-  Psi_VAR_h1_t <- XtXinv %*% XtY
-  Psi_VAR_h1_list[[t]] <- Psi_VAR_h1_t
-}
+Phi_0.VAR <- as.matrix(t(Psi.VAR)[,1])
+Phi_1.VAR <- as.matrix(t(Psi.VAR)[,2:nrow(Psi.VAR)])
 
 E_yields12M_VAR <- matrix(nrow = (T - W), ncol = ncol(yields12M))
 rownames(E_yields12M_VAR) <- rownames(yields12M[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields12M_VAR[t , ] <- as.matrix(Psi_VAR_h1_list[[t]]) %*% t(yields12M[(t + W - 1), ])
+    E_yields12M_VAR[t , ] <- Phi_0.VAR + Phi_1.VAR %*% t(yields12M[(t + W - 1), ])
 }
 
 MSFE_VAR <- numeric(ncol(E_yields12M_car))
