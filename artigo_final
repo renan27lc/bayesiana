@@ -713,7 +713,7 @@ MSPExphyp_W <- matrix(
 
 N <- 12
 T <- nrow(yields)
-yields12M <- yields[,1:N] #*100
+yieldsN <- yields[,1:N] #*100
 W <- 108
 theta_ij <- 0.00001
 theta_ii <- 0.001
@@ -723,7 +723,7 @@ residual_variances_ar <- numeric(N)
 intercepts_ar <- numeric(N)
 
 for (i in 1:N) {
-  time_series <- yields12M[, i]
+  time_series <- yieldsN[, i]
   ar6 <- arima(time_series, order = c(6, 0, 0))
   residual_variances_ar[i] <- var(resid(ar6))
   intercepts_ar[i] <- ar6$coef[1]
@@ -759,9 +759,9 @@ Psi.prior <- t(cbind(Phi_0.prior, Phi_1.prior))
 #----3) matrices X and Y
 #_____________________________________________________________________
 
-Y <-  as.matrix(yields12M[2:W, ])
+Y <-  as.matrix(yieldsN[2:W, ])
 
-Y_ <-  yields12M[1:(W - 1), ]
+Y_ <-  yieldsN[1:(W - 1), ]
 X_intercept <- matrix(1, ncol = 1, nrow = (W-1))
 X <- as.matrix(cbind(X_intercept,Y_))
 
@@ -769,55 +769,45 @@ X <- as.matrix(cbind(X_intercept,Y_))
 #----4) Psi.posterior and BVAR estimation
 #_____________________________________________________________________
 
-Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
-# Omega.prior_22x22 <- as.matrix(rbind(matrix(1, ncol = 13, nrow = 1),cbind(matrix(1, ncol = 1, nrow = 12), Omega.prior)))
-# Psi.posterior <- solve(solve(Omega.prior_22x22) + t(X) %*% X) %*% (solve(Omega.prior_22x22) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
+# Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
+Omega.prior_22x22 <- as.matrix(rbind(matrix(1, ncol = (N+1), nrow = 1),cbind(matrix(1, ncol = 1, nrow = N), Omega.prior)))
+Psi.posterior <- solve(solve(Omega.prior_22x22) + t(X) %*% X) %*% (solve(Omega.prior_22x22) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
 
 Phi_0.posterior <- as.matrix(t(Psi.posterior)[,1])
 Phi_1.posterior <- as.matrix(t(Psi.posterior)[,2:nrow(Psi.posterior)])
 
-E_yields12M_car <- matrix(nrow = (T - W), ncol = N)
-rownames(E_yields12M_car) <- rownames(yields12M[(W + 1):T,])
+E_yieldsN_car <- matrix(nrow = (T - W), ncol = N)
+rownames(E_yieldsN_car) <- rownames(yieldsN[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields12M_car[t , ] <- Phi_0.posterior + Phi_1.posterior %*% t(yields12M[(t + W - 1), ])
+    E_yieldsN_car[t , ] <- Phi_0.posterior + Phi_1.posterior %*% t(yieldsN[(t + W - 1), ])
 }
 
 #_____________________________________________________________________
 #----5) MSFE Carriero
 #_____________________________________________________________________
 
-yields12M_T0 <- yields12M[(W + 1):T,]
+yieldsN_T0 <- yieldsN[(W + 1):T,]
 
-MSFE_car <- matrix(nrow = 1, ncol = ncol(yields12M_T0))
-for (i in 1:ncol(yields12M_T0)) {
-  MSFE_car[,i] <- (sum(E_yields12M_car[,i] - yields12M_T0[,i])^2)/(T - W)
+MSFE_car <- matrix(nrow = 1, ncol = ncol(yieldsN_T0))
+for (i in 1:ncol(yieldsN_T0)) {
+  MSFE_car[,i] <- (sum(E_yieldsN_car[,i] - yieldsN_T0[,i])^2)/(T - W)
 }
 
 #_____________________________________________________________________
 #----6) MSFE Random Walk
 #_____________________________________________________________________
 
-E_yields12M_rw <- yields12M[(W):(T - 1),]
-rownames(E_yields12M_rw) <- rownames(yields12M[(W + 1):T,])
+E_yieldsN_rw <- yieldsN[(W):(T - 1),]
+rownames(E_yieldsN_rw) <- rownames(yieldsN[(W + 1):T,])
 
-MSFE_rw <- matrix(nrow = 1, ncol = ncol(yields12M_T0))
-for (i in 1:ncol(yields12M_T0)) {
-    MSFE_rw[,i] <- (sum(E_yields12M_rw[,i] - yields12M_T0[,i])^2)/(T - W)
+MSFE_rw <- matrix(nrow = 1, ncol = ncol(yieldsN_T0))
+for (i in 1:ncol(yieldsN_T0)) {
+    MSFE_rw[,i] <- (sum(E_yieldsN_rw[,i] - yieldsN_T0[,i])^2)/(T - W)
 }
 
 #_____________________________________________________________________
 #----7) MSFE AR
 #_____________________________________________________________________
-
-residual_variances_ar <- numeric(N)
-intercepts_ar <- numeric(N)
-
-for (i in 1:N) {
-  time_series <- yields12M[, i]
-  ar6 <- arima(time_series, order = c(6, 0, 0))
-  residual_variances_ar[i] <- var(resid(ar6))
-  intercepts_ar[i] <- ar6$coef[1]
-}
 
 
 #_____________________________________________________________________
@@ -829,20 +819,20 @@ Psi.VAR <- solve(t(X) %*% X) %*% (t(X) %*% (Y))
 Phi_0.VAR <- as.matrix(t(Psi.VAR)[,1])
 Phi_1.VAR <- as.matrix(t(Psi.VAR)[,2:nrow(Psi.VAR)])
 
-E_yields12M_VAR <- matrix(nrow = (T - W), ncol = ncol(yields12M))
-rownames(E_yields12M_VAR) <- rownames(yields12M[(W + 1):T,])
+E_yieldsN_VAR <- matrix(nrow = (T - W), ncol = ncol(yieldsN))
+rownames(E_yieldsN_VAR) <- rownames(yieldsN[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yields12M_VAR[t , ] <- Phi_0.VAR + Phi_1.VAR %*% t(yields12M[(t + W - 1), ])
+    E_yieldsN_VAR[t , ] <- Phi_0.VAR + Phi_1.VAR %*% t(yieldsN[(t + W - 1), ])
 }
 
-MSFE_VAR <- matrix(nrow = 1, ncol = ncol(yields12M_T0))
-for (i in 1:ncol(yields12M_T0)) {
-  MSFE_VAR[i] <- (sum(E_yields12M_VAR[,i] - yields12M_T0[,i])^2)/(T - W)
+MSFE_VAR <- matrix(nrow = 1, ncol = ncol(yieldsN_T0))
+for (i in 1:ncol(yieldsN_T0)) {
+  MSFE_VAR[i] <- (sum(E_yieldsN_VAR[,i] - yieldsN_T0[,i])^2)/(T - W)
 }
 
 MSFE_VAR/MSFE_rw
 
-#var_model <- VAR(yields12M[1:W, ], p = 1)
+#var_model <- VAR(yieldsN[1:W, ], p = 1)
 
 
 #_____________________________________________________________________
@@ -865,7 +855,7 @@ grid_theta_ij <- c(2e-16, 4e-16, 6e-16, 8e-16, 1e-15, 0.00001, 0.0001, 0.001, 0.
     }
   }
 
-database_size <- length(as.matrix(yields12M[1:W,]))
+database_size <- length(as.matrix(yieldsN[1:W,]))
 
 Sigma <- diag(residual_variances_ar)
 nu.prior <- database_size/10000  # arbitrary choice of nu
