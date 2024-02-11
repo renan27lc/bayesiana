@@ -2,9 +2,10 @@
 
 N <- 12
 T <- nrow(yields)
-yieldsN <- yields[,1:N] #*100
+yieldsN <- yields[, seq(from = 3, to = N*3, by = 3)] #*100
 W <- 108
-theta_ij <- 0.00001
+theta <- 0.00001
+
 
 
 residual_variances_ar <- numeric(N)
@@ -48,9 +49,7 @@ X <- as.matrix(cbind(X_intercept,Y_))
 #----4) Psi.posterior and BVAR estimation
 #_____________________________________________________________________
 
-# Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
-Omega.prior_22x22 <- as.matrix(rbind(matrix(1, ncol = (N+1), nrow = 1),cbind(matrix(1, ncol = 1, nrow = N), Omega.prior)))
-Psi.posterior <- solve(solve(Omega.prior_22x22) + t(X) %*% X) %*% (solve(Omega.prior_22x22) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
+Psi.posterior <- solve(solve(Omega.prior) + t(X) %*% X) %*% (solve(Omega.prior) %*% Psi.prior + t(X) %*% (Y))             #### But Omega is NxN and XtX is MxM (M = N+1)!
 
 Phi_0.posterior <- as.matrix(t(Psi.posterior)[,1])
 Phi_1.posterior <- as.matrix(t(Psi.posterior)[,2:nrow(Psi.posterior)])
