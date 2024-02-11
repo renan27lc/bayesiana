@@ -126,7 +126,7 @@ N <- 12
 T <- nrow(yields)
 yieldsN <- yields[, seq(from = 3, to = N*3, by = 3)] #*100
 W <- 108
-theta <- 0.00001
+theta <- 1
 
 Phi_0.prior <- numeric(N)
 
@@ -146,7 +146,6 @@ X_list_h1 <- lapply(1:(T - W), function(t) {
 
 
 
-# Psi a posteriori
 Psi.posterior_list <- vector("list", length = (T - W))
 
 for (t in 1:(T - W)) {
@@ -155,8 +154,6 @@ for (t in 1:(T - W)) {
   Psi.posterior_t <- intermediate_matrix1_h1 %*% intermediate_matrix2_h1
   Psi.posterior_list[[t]] <- Psi.posterior_t
 }
-
-I have the list of T-W matrices called Psi.posterior_list, so Psi.posterior_list <- vector("list", length = (T - W)). I want to make another list called "Phi_0.posterior_list" where each matrix will be
 
 Phi_0.posterior_list <- vector("list", length = (T - W))
 for (t in 1:(T - W)) {
