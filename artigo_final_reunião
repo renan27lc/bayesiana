@@ -4,9 +4,7 @@ N <- 12
 T <- nrow(yields)
 yieldsN <- yields[, seq(from = 3, to = N*3, by = 3)] #*100
 W <- 108
-theta <- 0.00001
-
-
+theta <- 10
 
 residual_variances_ar <- numeric(N)
 intercepts_ar <- numeric(N)
@@ -22,7 +20,7 @@ for (i in 1:N) {
 #----1) matrix Psi.prior = [Phi_0.prior Phi_1.prior]'
 #_____________________________________________________________________
 
-Phi_0.prior <- intercepts_ar
+Phi_0.prior <- (intercepts_ar*0 + 1)
 
 Phi_1.prior <- diag(0.99, N)
 
@@ -113,46 +111,3 @@ MSFE_VAR/MSFE_rw
 #var_model <- VAR(yieldsN[1:W, ], p = 1)
 
 
-#_____________________________________________________________________
-#----9) THETA
-#_____________________________________________________________________
-
-
-grid_theta_ij <- c(2e-16, 4e-16, 6e-16, 8e-16, 1e-15, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10)
-
-#theta_ij <- 1000
-
-  Omega.prior <- matrix( nrow = N, ncol = N)
-  for (i in 1:N) {
-    for (j in 1:N) {
-      if (i != j) {
-        Omega.prior[i, j] <- theta_ij * residual_variances_ar[i] / residual_variances_ar[j]
-      } else {
-        Omega.prior[i, j] <- theta_ii
-      }
-    }
-  }
-
-database_size <- length(as.matrix(yieldsN[1:W,]))
-
-Sigma <- diag(residual_variances_ar)
-nu.prior <- database_size/10000  # arbitrary choice of nu
-S.prior <- Sigma * (nu.prior - N - 1)
-
-Var_Psi.prior <- kronecker(Sigma, Omega.prior)
-
-multivariate_gamma <- function(p, nu) {
-  term <- pi^(p*(p-1)/4)
-  product <- prod(gamma((nu + 1 - seq_len(p))/2))
-  result <- term * product
-  return(result)
-}
-
-Gamma_nu <- multivariate_gamma(N, nu.prior/2)
-Gamma_nuN <- multivariate_gamma(N, (nu.prior + database_size)/2)
-
-mg_lh_simple <- (det(Sigma)^(nu.prior/2) * Gamma_nuN/2) / ((pi)^(database_size*N/2) * Gamma_nu * (det(Sigma + S.prior))^((nu.prior + database_size)/2))
-
-#mg_lh <- (det(Var_Psi.prior)^((nu.prior - W + database_size*N)/2) * Gamma_nuN/2) / ((pi)^(database_size*N*W/2) * Gamma_nu * (det(Var_Psi.prior + S.prior))^((nu.prior + database_size)/2))
-
-mg_lh_simple
