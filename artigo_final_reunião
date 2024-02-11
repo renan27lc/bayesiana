@@ -111,3 +111,11 @@ MSFE_VAR/MSFE_rw
 #var_model <- VAR(yieldsN[1:W, ], p = 1)
 
 
+
+
+
+
+
+
+
+
