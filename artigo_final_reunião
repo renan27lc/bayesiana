@@ -4,13 +4,13 @@ N <- 12
 T <- nrow(yields)
 yieldsN <- yields[, seq(from = 3, to = N*3, by = 3)] #*100
 W <- 108
-theta <- 1
+theta <- 10
 
 #_____________________________________________________________________
 #----1) matrix Psi.prior = [Phi_0.prior Phi_1.prior]'
 #_____________________________________________________________________
 
-Phi_0.prior <- numeric(N) + 1
+Phi_0.prior <- numeric(N)
 
 Phi_1.prior <- diag(0.99, N)
 
