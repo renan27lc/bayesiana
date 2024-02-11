@@ -6,21 +6,11 @@ yieldsN <- yields[, seq(from = 3, to = N*3, by = 3)] #*100
 W <- 108
 theta <- 10
 
-residual_variances_ar <- numeric(N)
-intercepts_ar <- numeric(N)
-
-for (i in 1:N) {
-  time_series <- yieldsN[, i]
-  ar6 <- arima(time_series, order = c(6, 0, 0))
-  residual_variances_ar[i] <- var(resid(ar6))
-  intercepts_ar[i] <- ar6$coef[1]
-}
-
 #_____________________________________________________________________
 #----1) matrix Psi.prior = [Phi_0.prior Phi_1.prior]'
 #_____________________________________________________________________
 
-Phi_0.prior <- (intercepts_ar*0 + 1)
+Phi_0.prior <- numeric(N) + 1
 
 Phi_1.prior <- diag(0.99, N)
 
