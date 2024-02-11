@@ -4,7 +4,7 @@ N <- 12
 T <- nrow(yields)
 yieldsN <- yields[, seq(from = 3, to = N*3, by = 3)] #*100
 W <- 108
-theta <- 10
+theta <- 1
 
 #_____________________________________________________________________
 #----1) matrix Psi.prior = [Phi_0.prior Phi_1.prior]'
@@ -70,6 +70,8 @@ MSFE_rw <- matrix(nrow = 1, ncol = ncol(yieldsN_T0))
 for (i in 1:ncol(yieldsN_T0)) {
     MSFE_rw[,i] <- (sum(E_yieldsN_rw[,i] - yieldsN_T0[,i])^2)/(T - W)
 }
+
+MSFE_car/MSFE_rw
 
 #_____________________________________________________________________
 #----7) MSFE AR
