@@ -111,3 +111,126 @@ MSFE_VAR/MSFE_rw
 
 
 
+
+
+
+
+
+
+
+
+#==============================-----ROLLING WINDOW = 108, H=1 in whole code, ar with fixed 108 window, NO INTERCEPT------============================================================
+
+
+N <- 12
+T <- nrow(yields)
+yieldsN <- yields[, seq(from = 3, to = N*3, by = 3)] #*100
+W <- 108
+theta <- 0.00001
+
+
+optimal_p_values <- numeric(121)
+residual_variances_ar <- numeric(121)
+intercepts_ar <- numeric(121)
+
+
+residual_variances_ar <- numeric(N)
+intercepts_ar <- numeric(N)
+
+for (i in 1:N) {
+  time_series <- yieldsN[, i]
+  ar6 <- arima(time_series, order = c(6, 0, 0))
+  residual_variances_ar[i] <- var(resid(ar6))
+  intercepts_ar[i] <- ar6$coef[1]
+}
+
+Omega.prior <- diag(N+1)*theta
+
+
+Y_list_h1 <- lapply(1:(T - W), function(t) yieldsN[(t + 1):(t + W - 1), ])
+
+X_list_h1 <- lapply(1:(T - W), function(t) {
+  matrix_with_ones <- cbind(1, yieldsN[(t):(t + W - 2), ])
+  return(matrix_with_ones)
+})
+
+Phi_0.prior <- numeric(N)
+
+Phi_1.prior <- diag(0.99, N)
+
+Psi.prior <- t(cbind(Phi_0.prior, Phi_1.prior))
+
+# Psi a posteriori
+Psi.posterior_list <- vector("list", length = (T - W))
+
+for (t in 1:(T - W)) {
+  intermediate_matrix1_h1 <- solve(solve(Omega.prior) + t(X_list_h1[[t]]) %*% as.matrix(X_list_h1[[t]]))
+  intermediate_matrix2_h1 <- solve(Omega.prior) %*% Psi.prior + t(X_list_h1[[t]]) %*% as.matrix(Y_list_h1[[t]])
+  Psi.posterior_t <- intermediate_matrix1_h1 %*% intermediate_matrix2_h1
+  Psi.posterior_list[[t]] <- Psi.posterior_t
+}
+
+I have the list of T-W matrices called Psi.posterior_list, so Psi.posterior_list <- vector("list", length = (T - W)). I want to make another list called "Phi_0.posterior_list" where each matrix will be
+
+Phi_0.posterior_list <- vector("list", length = (T - W))
+for (t in 1:(T - W)) {
+Phi_0.posterior_list[[t]] <- as.matrix(t(Psi.posterior_list[[t]])[,1])
+}
+
+Phi_1.posterior_list <- vector("list", length = (T - W))
+for (t in 1:(T - W)) {
+Phi_1.posterior_list[[t]] <- as.matrix(t(Psi.posterior_list[[t]])[,2:nrow(Psi.posterior_list[[t]])])
+}
+
+
+E_yieldsN_car <- matrix(nrow = (T - W), ncol = N)
+rownames(E_yieldsN_car) <- rownames(yieldsN[(W + 1):T,])
+for (t in 1:(T - W)) {
+    E_yieldsN_car[t , ] <- Phi_0.posterior_list[[t]] + Phi_1.posterior_list[[t]] %*% t(yieldsN[(t + W - 1), ])
+}
+
+yieldsN_T0 <- yieldsN[(W + 1):T,]
+
+MSFE_car <- numeric(ncol(E_yieldsN_car))
+for (i in 1:ncol(E_yieldsN_car)) {
+  MSFE_car[i] <- (sum(E_yieldsN_car[,i] - yieldsN_T0[,i])^2)/(T - W)
+}
+
+E_yieldsN_rw <- yieldsN[(W):(T - 1),]
+rownames(E_yieldsN_rw) <- rownames(yieldsN[(W + 1):T,])
+
+MSFE_rw <- matrix(nrow = 1, ncol = ncol(E_yieldsN_car))
+for (i in 1:ncol(E_yieldsN_car)) {
+    MSFE_rw[,i] <- (sum(E_yieldsN_rw[,i] - yieldsN_T0[,i])^2)/(T - W)
+}
+
+MSFE_car/MSFE_rw
+
+# VAR
+Psi_VAR_h1_list <- vector("list", length = (T - W))
+
+for (t in 1:(T - W)) {
+  intermediate_matrix1_h1 <- solve(t(X_list_h1[[t]]) %*% as.matrix(X_list_h1[[t]]))
+  intermediate_matrix2_h1 <- t(X_list_h1[[t]]) %*% as.matrix(Y_list_h1[[t]])
+  Psi_VAR_h1_t <- intermediate_matrix1_h1 %*% intermediate_matrix2_h1
+  Psi_VAR_h1_list[[t]] <- Psi_VAR_h1_t
+}
+
+E_yieldsN_VAR <- matrix(nrow = (T - W), ncol = ncol(yieldsN))
+rownames(E_yieldsN_VAR) <- rownames(yieldsN[(W + 1):T,])
+for (t in 1:(T - W)) {
+    E_yieldsN_VAR[t , ] <- as.matrix(Psi_VAR_h1_list[[t]]) %*% t(yieldsN[(t + W - 1), ])
+}
+
+MSFE_VAR <- numeric(ncol(E_yieldsN_car))
+for (i in 1:ncol(E_yieldsN_car)) {
+  MSFE_VAR[i] <- (sum(E_yieldsN_VAR[,i] - yieldsN_T0[,i])^2)/(T - W)
+}
+
+
+
+
+
+
+
+
