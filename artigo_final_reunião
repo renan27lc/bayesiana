@@ -124,7 +124,8 @@ MSFE_VAR/MSFE_rw
 
 N <- 12
 T <- nrow(yields)
-yieldsN <- yields[, seq(from = 3, to = N*3, by = 3)] #*100
+by <- 1
+yieldsN <- yields[, seq(from = by, to = N*by, by = by)] #*100
 W <- 108
 theta <- 1
 
@@ -190,19 +191,34 @@ for (i in 1:ncol(E_yieldsN_car)) {
 MSFE_car/MSFE_rw
 
 # VAR
-Psi_VAR_h1_list <- vector("list", length = (T - W))
+
+Psi.posterior_list <- vector("list", length = (T - W))
+
+
+
+Psi.VAR_list <- vector("list", length = (T - W))
 
 for (t in 1:(T - W)) {
   intermediate_matrix1_h1 <- solve(t(X_list_h1[[t]]) %*% as.matrix(X_list_h1[[t]]))
   intermediate_matrix2_h1 <- t(X_list_h1[[t]]) %*% as.matrix(Y_list_h1[[t]])
-  Psi_VAR_h1_t <- intermediate_matrix1_h1 %*% intermediate_matrix2_h1
-  Psi_VAR_h1_list[[t]] <- Psi_VAR_h1_t
+  Psi.VAR_t <- intermediate_matrix1_h1 %*% intermediate_matrix2_h1
+  Psi.VAR_list[[t]] <- Psi.VAR_t
 }
 
-E_yieldsN_VAR <- matrix(nrow = (T - W), ncol = ncol(yieldsN))
+Phi_0.VAR_list <- vector("list", length = (T - W))
+for (t in 1:(T - W)) {
+Phi_0.VAR_list[[t]] <- as.matrix(t(Psi.VAR_list[[t]])[,1])
+}
+
+Phi_1.VAR_list <- vector("list", length = (T - W))
+for (t in 1:(T - W)) {
+Phi_1.VAR_list[[t]] <- as.matrix(t(Psi.VAR_list[[t]])[,2:nrow(Psi.VAR_list[[t]])])
+}
+
+E_yieldsN_VAR <- matrix(nrow = (T - W), ncol = N)
 rownames(E_yieldsN_VAR) <- rownames(yieldsN[(W + 1):T,])
 for (t in 1:(T - W)) {
-    E_yieldsN_VAR[t , ] <- as.matrix(Psi_VAR_h1_list[[t]]) %*% t(yieldsN[(t + W - 1), ])
+    E_yieldsN_VAR[t , ] <- Phi_0.VAR_list[[t]] + Phi_1.VAR_list[[t]] %*% t(yieldsN[(t + W - 1), ])
 }
 
 MSFE_VAR <- numeric(ncol(E_yieldsN_car))
