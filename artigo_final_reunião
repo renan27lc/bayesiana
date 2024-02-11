@@ -128,21 +128,11 @@ yieldsN <- yields[, seq(from = 3, to = N*3, by = 3)] #*100
 W <- 108
 theta <- 0.00001
 
+Phi_0.prior <- numeric(N)
 
-optimal_p_values <- numeric(121)
-residual_variances_ar <- numeric(121)
-intercepts_ar <- numeric(121)
+Phi_1.prior <- diag(0.99, N)
 
-
-residual_variances_ar <- numeric(N)
-intercepts_ar <- numeric(N)
-
-for (i in 1:N) {
-  time_series <- yieldsN[, i]
-  ar6 <- arima(time_series, order = c(6, 0, 0))
-  residual_variances_ar[i] <- var(resid(ar6))
-  intercepts_ar[i] <- ar6$coef[1]
-}
+Psi.prior <- t(cbind(Phi_0.prior, Phi_1.prior))
 
 Omega.prior <- diag(N+1)*theta
 
@@ -154,11 +144,7 @@ X_list_h1 <- lapply(1:(T - W), function(t) {
   return(matrix_with_ones)
 })
 
-Phi_0.prior <- numeric(N)
 
-Phi_1.prior <- diag(0.99, N)
-
-Psi.prior <- t(cbind(Phi_0.prior, Phi_1.prior))
 
 # Psi a posteriori
 Psi.posterior_list <- vector("list", length = (T - W))
