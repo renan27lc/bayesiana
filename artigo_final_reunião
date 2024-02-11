@@ -5,7 +5,6 @@ T <- nrow(yields)
 yieldsN <- yields[,1:N] #*100
 W <- 108
 theta_ij <- 0.00001
-theta_ii <- 0.001
 
 
 residual_variances_ar <- numeric(N)
@@ -32,18 +31,8 @@ Psi.prior <- t(cbind(Phi_0.prior, Phi_1.prior))
 #----2) matrix Omega.prior
 #_____________________________________________________________________
 
-theta <- 0.0001
+Omega.prior <- diag(N+1)*theta
 
-  Omega.prior <- matrix( nrow = N, ncol = N)
-  for (i in 1:N) {
-    for (j in 1:N) {
-      if (i != j) {
-        Omega.prior[i, j] <- theta_ij * residual_variances_ar[i] / residual_variances_ar[j]
-      } else {
-        Omega.prior[i, j] <- theta_ii
-      }
-    }
-  }
 
 #_____________________________________________________________________
 #----3) matrices X and Y
