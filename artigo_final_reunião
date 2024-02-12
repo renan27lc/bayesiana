@@ -124,9 +124,9 @@ MSFE_VAR/MSFE_rw
 
 N <- 12
 T <- nrow(yields)
-by <- 1
+by <- 3
 yieldsN <- yields[, seq(from = by, to = N*by, by = by)] #*100
-W <- 108
+W <- 84
 theta <- 1
 
 Phi_0.prior <- numeric(N)
@@ -192,9 +192,6 @@ MSFE_car/MSFE_rw
 
 # VAR
 
-Psi.posterior_list <- vector("list", length = (T - W))
-
-
 
 Psi.VAR_list <- vector("list", length = (T - W))
 
@@ -227,9 +224,51 @@ for (i in 1:ncol(E_yieldsN_car)) {
 }
 
 
+MSFE_VAR/MSFE_rw
 
 
+#==============================-----PLOTS AND TABLES------============================================================
 
 
+install.packages("ggplot2")
+library(ggplot2)
 
+# Sample data (replace with your own data)
+date <- rownames(yieldsN[(W + 1):T,])
 
+data <- data.frame(Date = date, RandomWalk = E_yieldsN_rw[,3], BVAR = E_yieldsN_car[,3], Actual = yieldsN_T0[,3])
+
+library(reshape2)
+melted_data <- melt(data, id.vars = rownames(data), variable.name = "Type", value.name = "Value")
+
+# Plot
+ggplot(melted_data, aes(x = Date, y = Value, color = Type)) +
+  geom_line() +
+  labs(title = "Yield Forecasts vs Actual",
+       x = "Date",
+       y = "Yield",
+       color = "Type") +
+  theme_minimal()
+
+plot(date, E_yieldsN_rw[,3], type = "l", col = "blue", xlab = "Date", ylab = "Yield", main = "Yield Forecast vs Actual")
+lines(date, E_yieldsN_car[,3], col = "red")
+lines(date, yieldsN_T0[,3], col = "green")
+legend("topright", legend = c("Forecast 1", "Forecast 2", "Actual"), col = c("blue", "red", "green"), lty = 1)
+
+\begin{table}[hbt!]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+M3 & M6 & M9 & M12 & M15 & M18 & M21 & M24 & M27 & M30 & M33 & M36 \\ 
+  \hline
+ 1.62 & 1.61 & 1.61 & 1.62 & 1.63 & 1.66 & 1.68 & 1.72 & 1.75 & 1.80 & 1.81 & 1.83 \\
+   \hline
+\end{tabular}
+   \\
+ \floatfoot{
+
+ Fonte: Elaborado pelo Autor. NOTAS: Erro quadrado médio de previsão. A amostra de avaliação é de janeiro de 2013 a julho de 2022.
+}
+\caption {MSPE}
+\label{MSPE}
+\end{table}
